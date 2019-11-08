@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width-device-width, initial-scale = 1.0">
+        <style>
+            #logga {
+                position: absolute;
+                top: 33px;
+                left: 100px;
+            }
+            canvas {
+                position: absolute;
+                top: 150px;
+                left: 12px;
+            }
+            #wallCanvas {
+                border: 1px solid black;
+                z-index: 10;
+            }
+            #pcCanvas {
+                z-index: 1;
+            }
+            #bgCanvas {
+                z-index: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <img id="logga" src="Logga.png">
+        <canvas id="bgCanvas" width="352" height="455"></canvas>
+        <canvas id="pcCanvas" width="352" height="455"></canvas>
+        <canvas id="wallCanvas" width="352" height="455"></canvas>
+        <script>
+            window.onload = function() {
+                var wallCanvas = document.getElementById('wallCanvas');
+                var pcCanvas = document.getElementById('pcCanvas');
+                var bgCanvas = document.getElementById('bgCanvas');
+                var ctxWalls = wallCanvas.getContext('2d');
+                var ctxPc = pcCanvas.getContext('2d');
+                var ctxBg = bgCanvas.getContext('2d');
+                var mapArray = [
+                    [8,8,8,8,8,8,8,8,8,8,8],
+                    [1,1,1,1,1,1,1,1,1,1,1],
+                    [1,0,1,0,0,0,0,0,0,0,1],
+                    [1,0,1,0,1,0,1,1,1,1,1],
+                    [1,0,1,0,1,0,1,0,0,0,1],
+                    [1,0,0,0,1,0,1,0,1,1,1],
+                    [1,1,1,1,1,0,0,0,0,0,1],
+                    [1,0,0,0,0,0,1,1,1,0,1],
+                    [1,0,1,1,1,1,1,0,1,0,1],
+                    [1,0,1,0,0,0,0,0,1,1,1],
+                    [1,0,0,0,1,0,1,0,0,0,1],
+                    [1,1,1,1,1,0,1,1,1,1,1],
+                    [1,0,0,0,1,0,0,0,0,0,3],
+                    [1,0,1,0,1,0,1,1,1,0,1],
+                    [1,0,1,0,1,0,0,0,1,0,1],
+                    [1,0,1,0,0,0,1,0,1,0,1],
+                    [1,0,1,1,1,1,1,1,1,0,1],
+                    [1,0,0,0,0,0,0,0,0,0,1],
+                    [1,1,1,1,1,1,1,1,1,1,1]
+                ];
+                var ground = new Image();
+                var outside = new Image();
+                var wall = new Image();
+                var playerChar = new Image();
+                ground.src = 'ground.png';
+                outside.src = 'outside.png';
+                wall.src = 'wallStone.png';
+                playerChar.src = 'hero_walkA_0000.png';
+                wall.onload = function() {
+                    draw();
+                };
+                playerChar.onload = function() {
+                    ctxPc.drawImage(playerChar, 100, 100, 30, 32);
+                }
+                function draw() {
+                    var posX = 0;
+                    var posY = 0;
+                    for (var i = 0; i < mapArray.length; i++) {
+                        for (var j = 0; j < mapArray[i].length; j++) {
+                            if (mapArray[i][j] == 1) {
+                                ctxWalls.drawImage(wall, posX, posY-3, 32, 45);
+                            }
+                            if (mapArray[i][j] != 8) {
+                                ctxBg.drawImage(ground, posX, posY, 32, 45);
+                            }
+                            if (mapArray[i][j] == 8) {
+                                ctxBg.drawImage(outside, posX, posY, 32, 45);
+                            }
+                            posX += 32;
+                        }
+                        posX = 0;
+                        posY += 24;
+                    }
+                }
+            }
+
+        </script>
+    </body>
+</html>
