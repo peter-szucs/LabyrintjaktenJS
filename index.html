@@ -6,8 +6,8 @@
     </head>
     <body>
         <img id="logga" src="Logga.png">
-        <canvas id="bgCanvas" width="352" height="455"></canvas>
-        <canvas id="pcCanvas" width="352" height="455"></canvas>
+        <canvas id="bgCanvas" width="352" height="576"></canvas>
+        <canvas id="pcCanvas" width="352" height="576"></canvas>
         <canvas id="wallCanvas" width="352" height="455"></canvas>
         <input type="button" id="upButton" class="button" onmousedown="playerUp=true" onmouseup="playerUp=false" value="Upp">
         <input type="button" id="leftButton" class="button" onmousedown="playerLeft=true" onmouseup="playerLeft=false" value=" V ">
@@ -21,37 +21,36 @@
                 var ctxWalls = wallCanvas.getContext('2d');
                 var ctxPc = pcCanvas.getContext('2d');
                 var ctxBg = bgCanvas.getContext('2d');
+                var allowedPathX = [];
+                var allowedPathY = [];
                 var mapArray = [
-                    [5, 1, 9,  1, 1, 1,  1, 1, 1, 1, 6],
-                    [3, 0, 14, 0, 0,  0, 0, 0, 0, 0, 4],
-                    [3, 0, 14, 0, 16, 0, 0, 0, 16,0, 4],
-                    [3, 0, 14, 0, 14, 0, 24,13,13,13,12],
-                    [3, 0, 15, 0, 14, 0, 14,0, 0, 0, 4],
-                    [3, 0, 0,  0, 14, 0, 15,0, 18,13,12],
-                    [11,13,13, 13,26, 0, 0, 0, 0, 0, 4],
-                    [3, 0, 0,  0, 0,  0, 24,13,23,0, 4],
-                    [3, 0, 24, 13,13,13, 26,0, 14,0, 4],
-                    [3, 0, 15, 0, 0,  0, 0, 0, 25,13,12],
-                    [3, 0, 0,  0, 16, 0, 16,0, 0, 0, 4],
-                    [11,13,13, 13,21, 0, 25,13,13,13,12],
-                    [3, 0, 0,  0, 14, 0, 0, 0, 0, 0, 0],
-                    [3, 0, 16, 0, 14, 0, 18,13,23,0, 4],
-                    [3, 0, 14, 0, 15, 0, 0, 0, 14,0, 4],
-                    [3, 0, 14, 0, 0,  0, 16,0, 14,0, 4],
-                    [3, 0, 25, 13,13, 13,20,13,26,0, 4],
-                    [3, 0, 0,  0, 0,  0, 0, 0, 0, 0, 4],
-                    [8, 2, 2,  2, 2,  2, 2, 2, 2, 2, 7]
+                    [5, 1, 9,  1, 1,  1,  1, 1, 1, 1, 6],
+                    [3, 0, 14, 0, 0,  0,  0, 0, 0, 0, 4],
+                    [3, 0, 14, 0, 16, 0,  26,13,13,13,12],
+                    [3, 0, 15, 0, 14, 0,  14,0, 0, 0, 4],
+                    [3, 0, 0,  0, 14, 0,  15,0, 18,13,12],
+                    [11,13,13, 13,24, 0,  0, 0, 0, 0, 4],
+                    [3, 0, 0,  0, 0,  0,  26,13,25,0, 4],
+                    [3, 0, 26, 13,13,13,  24,0, 14,0, 4],
+                    [3, 0, 15, 0, 0,  0,  0, 0, 23,13,12],
+                    [3, 0, 0,  0, 16, 0,  16,0, 0, 0, 4],
+                    [11,13,13, 13,21, 0,  23,13,13,13,12],
+                    [3, 0, 0,  0, 14, 0,  0, 0, 0, 0, 0],
+                    [3, 0, 16, 0, 14, 0,  18,13,25,0, 4],
+                    [3, 0, 14, 0, 15, 0,  0, 0, 14,0, 4],
+                    [3, 0, 14, 0, 0,  0,  16,0, 14,0, 4],
+                    [3, 0, 23, 13,13, 13, 20,13,24,0, 4],
+                    [3, 0, 0,  0, 0,  0,  0, 0, 0, 0, 4],
+                    [8, 2, 2,  2, 2,  2,  2, 2, 2, 2, 7]
                 ];
-                var ground = new Image();
-                var outside = new Image();
-                var wall = new Image();
+                var tileSheet = new Image();
+                
                 var playerChar = new Image();
-                ground.src = 'ground.png';
-                outside.src = 'outside.png';
-                wall.src = 'wallStone.png';
+                
+                tileSheet.src = "Tilesheet.png";
                 playerChar.src = 'pcDown.png';
 
-                wall.onload = function() {
+                tileSheet.onload = function() {
                     draw();
                 };
                 playerChar.onload = function() {
@@ -62,22 +61,31 @@
                     var posY = 0;
                     for (var i = 0; i < mapArray.length; i++) {
                         for (var j = 0; j < mapArray[i].length; j++) {
-                            if (mapArray[i][j] == 1) {
-                                ctxWalls.drawImage(wall, posX, posY, 32, 45);
+                            var value = mapArray[i][j];
+                            var sourceX = (value % 6) * 32;
+                            var sourceY = Math.floor(value / 6) * 32;
+                            ctxBg.drawImage(tileSheet, sourceX, sourceY, 32, 32, posX, posY, 32, 32);
+                            if (value == 0) {
+                                allowedPathX.push(posX);
+                                allowedPathY.push(posY);
                             }
-                            if (mapArray[i][j] == 0) {
-                                ctxBg.drawImage(ground, posX, posY, 32, 32);
-                            }
-                            if (mapArray[i][j] == 8) {
-                                ctxBg.drawImage(outside, posX, posY, 32, 45);
-                            }
-                            if (mapArray[i][j] == 2) {
-                                ctxBg.drawImage(wall, posX, posY-21, 32, 45);
-                            }
+
+                            // if (mapArray[i][j] == 1) {
+                            //     ctxWalls.drawImage(wall, posX, posY, 32, 45);
+                            // }
+                            // if (mapArray[i][j] == 0) {
+                            //     ctxBg.drawImage(ground, posX, posY, 32, 32);
+                            // }
+                            // if (mapArray[i][j] == 8) {
+                            //     ctxBg.drawImage(outside, posX, posY, 32, 45);
+                            // }
+                            // if (mapArray[i][j] == 2) {
+                            //     ctxBg.drawImage(wall, posX, posY-21, 32, 45);
+                            // }
                             posX += 32;
                         }
                         posX = 0;
-                        posY += 24;
+                        posY += 32;
                     }
                 }
                 function drawPlayer(canvasX, canvasY) {
@@ -100,16 +108,23 @@
                 */
                 const moveSpeed = 1;
                 let positionX = 32;
-                let positionY = 18;
+                let positionY = 12;
                 let playerUp = false;
                 let playerDown = false;
                 let playerLeft = false;
                 let playerRight = false;
+                console.log(allowedPathY);
 
                 function gameLoop() {
                     ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
                     if (playerUp == true) {
-                        positionY -= moveSpeed;
+                        for (let i = 0; i < allowedPathY.length; i++) {
+                            if (positionY == allowedPathY[i]) {
+                                positionY -= moveSpeed;
+                            }
+                            
+                        }
+                        //positionY -= moveSpeed;
                     }
                     else if (playerDown == true) {
                         positionY += moveSpeed;

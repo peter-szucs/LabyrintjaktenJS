@@ -1,11 +1,12 @@
 #logga {
     position: absolute;
-    top: 33px;
+    top: 632px;
     left: 100px;
+    z-index: -1;
 }
 canvas {
     position: absolute;
-    top: 150px;
+    top: 45px;
     left: 12px;
 }
 #wallCanvas {
