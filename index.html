@@ -23,6 +23,38 @@
             #bgCanvas {
                 z-index: 0;
             }
+            .button {
+                background-color: darkslategray;
+                border: none;
+                color: white;
+                padding: 10px 10px;
+                text-align: center;
+                display: inline-block;
+                font-size: 16px;
+                border-radius: 10px;
+                width: 62px;
+                height: 62px;
+            }
+            #upButton {
+                position: absolute;
+                top: 632px;
+                left: 157px;
+            }
+            #leftButton {
+                position: absolute;
+                top: 678px;
+                left: 93px;
+            }
+            #rightButton {
+                position: absolute;
+                top: 678px;
+                left: 221px;
+            }
+            #downButton {
+                position: absolute;
+                top: 714px;
+                left: 157px;
+            }
         </style>
     </head>
     <body>
@@ -30,8 +62,12 @@
         <canvas id="bgCanvas" width="352" height="455"></canvas>
         <canvas id="pcCanvas" width="352" height="455"></canvas>
         <canvas id="wallCanvas" width="352" height="455"></canvas>
+        <input type="button" id="upButton" class="button" onmousedown="playerUp=true" onmouseup="playerUp=false" value="Upp">
+        <input type="button" id="leftButton" class="button" onmousedown="playerLeft=true" onmouseup="playerLeft=false" value=" V ">
+        <input type="button" id="rightButton" class="button" onmousedown="playerRight=true" onmouseup="playerRight=false" value=" H ">
+        <input type="button" id="downButton" class="button" onmousedown="playerDown=true" onmouseup="playerDown=false" value="Ner">
         <script>
-            window.onload = function() {
+            //window.onload = function() {
                 var wallCanvas = document.getElementById('wallCanvas');
                 var pcCanvas = document.getElementById('pcCanvas');
                 var bgCanvas = document.getElementById('bgCanvas');
@@ -40,7 +76,7 @@
                 var ctxBg = bgCanvas.getContext('2d');
                 var mapArray = [
                     [8,8,8,8,8,8,8,8,8,8,8],
-                    [1,1,1,1,1,1,1,1,1,1,1],
+                    [1,2,1,2,2,2,2,2,2,2,1],
                     [1,0,1,0,0,0,0,0,0,0,1],
                     [1,0,1,0,1,0,1,1,1,1,1],
                     [1,0,1,0,1,0,1,0,0,0,1],
@@ -66,12 +102,13 @@
                 ground.src = 'ground.png';
                 outside.src = 'outside.png';
                 wall.src = 'wallStone.png';
-                playerChar.src = 'hero_walkA_0000.png';
+                playerChar.src = 'pcDown.png';
+
                 wall.onload = function() {
                     draw();
                 };
                 playerChar.onload = function() {
-                    ctxPc.drawImage(playerChar, 100, 100, 30, 32);
+                    ctxPc.drawImage(playerChar, 100, 68, 32, 41);
                 }
                 function draw() {
                     var posX = 0;
@@ -79,7 +116,7 @@
                     for (var i = 0; i < mapArray.length; i++) {
                         for (var j = 0; j < mapArray[i].length; j++) {
                             if (mapArray[i][j] == 1) {
-                                ctxWalls.drawImage(wall, posX, posY-3, 32, 45);
+                                ctxWalls.drawImage(wall, posX, posY-21, 32, 45);
                             }
                             if (mapArray[i][j] != 8) {
                                 ctxBg.drawImage(ground, posX, posY, 32, 45);
@@ -87,13 +124,63 @@
                             if (mapArray[i][j] == 8) {
                                 ctxBg.drawImage(outside, posX, posY, 32, 45);
                             }
+                            if (mapArray[i][j] == 2) {
+                                ctxBg.drawImage(wall, posX, posY-21, 32, 45);
+                            }
                             posX += 32;
                         }
                         posX = 0;
                         posY += 24;
                     }
                 }
-            }
+                function drawPlayer(canvasX, canvasY) {
+                ctxPc.drawImage(playerChar, canvasX, canvasY)
+                }
+                const animationLoop = [0, 1, 0, 2];
+                let currentLoopIndex = 0;
+                let frameCount = 0;
+                let currentDirection = 0;
+
+                /*let keyPresses = {};
+                window.addEventListener('keydown', keyDownListener, false);
+                function keyDownListener(event) {
+                    keyPresses[event.key] = true;
+                }
+                window.addEventListener('keyup', keyUpListener, false);
+                function keyUpListener(event) {
+                    keyPresses[event.key] = false;
+                }
+                */
+                const moveSpeed = 1;
+                let positionX = 32;
+                let positionY = 18;
+                let playerUp = false;
+                let playerDown = false;
+                let playerLeft = false;
+                let playerRight = false;
+
+                function gameLoop() {
+                    ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
+                    if (playerUp == true) {
+                        positionY -= moveSpeed;
+                    }
+                    else if (playerDown == true) {
+                        positionY += moveSpeed;
+                    }
+                    if (playerLeft == true) {
+                        positionX -= moveSpeed;
+                    }
+                    else if (playerRight == true) {
+                        positionX += moveSpeed;
+                    }
+                    drawPlayer(positionX, positionY);
+                    window.requestAnimationFrame(gameLoop);
+                    console.log(positionX, positionY);
+                }
+                gameLoop();
+            //}
+            
+
 
         </script>
     </body>
