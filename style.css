@@ -1,0 +1,52 @@
+#logga {
+    position: absolute;
+    top: 33px;
+    left: 100px;
+}
+canvas {
+    position: absolute;
+    top: 150px;
+    left: 12px;
+}
+#wallCanvas {
+    border: 1px solid black;
+    z-index: 10;
+}
+#pcCanvas {
+    z-index: 1;
+}
+#bgCanvas {
+    z-index: 0;
+}
+.button {
+    background-color: darkslategray;
+    border: none;
+    color: white;
+    padding: 10px 10px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 10px;
+    width: 62px;
+    height: 62px;
+}
+#upButton {
+    position: absolute;
+    top: 632px;
+    left: 157px;
+}
+#leftButton {
+    position: absolute;
+    top: 678px;
+    left: 93px;
+}
+#rightButton {
+    position: absolute;
+    top: 678px;
+    left: 221px;
+}
+#downButton {
+    position: absolute;
+    top: 714px;
+    left: 157px;
+}
