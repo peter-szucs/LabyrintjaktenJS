@@ -105,8 +105,8 @@
                 let playerDown = false;
                 let playerLeft = false;
                 let playerRight = false;
-                var clippingPosY = positionY + 12;
-                var clippingPosX = positionX + 2;
+                // var clippingPosY = positionY + 12;
+                // var clippingPosX = positionX + 2;
                 let monster1StartX = 5 * gameTiles;
                 let monster1EndX = (4 * gameTiles) + monster1StartX;
                 let monsterPosX = 5 * gameTiles
@@ -119,8 +119,6 @@
                 
                 console.log(allowedPathY);
                 console.log(walls);
-                console.log(monster1EndX)
-
                 
                 function gameLoop() {
                     ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
@@ -170,19 +168,20 @@
                     drawMonster(monsterPosX, monsterPosY)
                     window.requestAnimationFrame(gameLoop);
                     //console.log(positionX, positionY);
-                    console.log(clippingPosX, clippingPosY);
+                    //console.log(clippingPosX, clippingPosY);
                 }
                 gameLoop();
                 
                 function moveCharacter(deltaX, deltaY, direction) {
+                    var clippingPosY = positionY + 12;
+                    var clippingPosX = positionX + 2;
                     for (let i = 0; i < walls.length; i++) {
                             if (clippingPosX + deltaX > walls[i][0] + 32 &&
-                                clippingPosX + 28 + deltaX < walls[i][0]) {
-                                    positionX += deltaX;
-                            }
-                            if (clippingPosY + deltaY > walls[i][1] + 32 &&
+                                clippingPosX + 28 + deltaX < walls[i][0] &&
+                                clippingPosY + deltaY > walls[i][1] + 32 &&
                                 clippingPosY + 32 + deltaY < walls[i][1]) {
-                                positionY += deltaY;
+                                    positionX += deltaX;
+                                    positionY += deltaY;
                             }
                     }
                     // if (positionX + deltaX > 32 && positionX + 32 + deltaX < pcCanvas.width - 32) {
