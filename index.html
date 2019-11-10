@@ -15,6 +15,7 @@
         <input type="button" id="downButton" class="button" onmousedown="playerDown=true" onmouseup="playerDown=false" value="Ner">
         <script>
             //window.onload = function() {
+                var loop = true;
                 var wallCanvas = document.getElementById('wallCanvas');
                 var pcCanvas = document.getElementById('pcCanvas');
                 var bgCanvas = document.getElementById('bgCanvas');
@@ -23,32 +24,35 @@
                 var ctxBg = bgCanvas.getContext('2d');
                 var allowedPathX = [];
                 var allowedPathY = [];
+                var walls = [];
+                var gameTiles = 32;
                 var mapArray = [
-                    [5, 1, 9,  1, 1,  1,  1, 1, 1, 1, 6],
-                    [3, 0, 14, 0, 0,  0,  0, 0, 0, 0, 4],
-                    [3, 0, 14, 0, 16, 0,  26,13,13,13,12],
-                    [3, 0, 15, 0, 14, 0,  14,0, 0, 0, 4],
-                    [3, 0, 0,  0, 14, 0,  15,0, 18,13,12],
-                    [11,13,13, 13,24, 0,  0, 0, 0, 0, 4],
-                    [3, 0, 0,  0, 0,  0,  26,13,25,0, 4],
-                    [3, 0, 26, 13,13,13,  24,0, 14,0, 4],
-                    [3, 0, 15, 0, 0,  0,  0, 0, 23,13,12],
-                    [3, 0, 0,  0, 16, 0,  16,0, 0, 0, 4],
-                    [11,13,13, 13,21, 0,  23,13,13,13,12],
-                    [3, 0, 0,  0, 14, 0,  0, 0, 0, 0, 0],
-                    [3, 0, 16, 0, 14, 0,  18,13,25,0, 4],
-                    [3, 0, 14, 0, 15, 0,  0, 0, 14,0, 4],
-                    [3, 0, 14, 0, 0,  0,  16,0, 14,0, 4],
-                    [3, 0, 23, 13,13, 13, 20,13,24,0, 4],
-                    [3, 0, 0,  0, 0,  0,  0, 0, 0, 0, 4],
-                    [8, 2, 2,  2, 2,  2,  2, 2, 2, 2, 7]
+                    [5, 1, 9,  1, 1,  1, 1, 1, 1, 1, 6],
+                    [3, 0, 14, 0, 0,  0, 0, 0, 0, 0, 4],
+                    [3, 0, 14, 0, 16, 0, 26,13,13,13,12],
+                    [3, 0, 15, 0, 14, 0, 14,0, 0, 0, 4],
+                    [3, 0, 0,  0, 14, 0, 15,0, 18,13,12],
+                    [11,13,13, 13,24, 0, 0, 0, 0, 0, 4],
+                    [3, 0, 0,  0, 0,  0, 26,13,25,0, 4],
+                    [3, 0, 26, 13,13,13, 24,0, 14,0, 4],
+                    [3, 0, 15, 0, 0,  0, 0, 0, 23,13,12],
+                    [3, 0, 0,  0, 16, 0, 16,0, 0, 0, 4],
+                    [11,13,13, 13,21, 0, 23,13,13,13,12],
+                    [3, 0, 0,  0, 14, 0, 0, 0, 0, 0, 0],
+                    [3, 0, 16, 0, 14, 0, 18,13,25,0, 4],
+                    [3, 0, 14, 0, 15, 0, 0, 0, 14,0, 4],
+                    [3, 0, 14, 0, 0,  0, 16,0, 14,0, 4],
+                    [3, 0, 23, 13,13, 13,20,13,24,0, 4],
+                    [3, 0, 0,  0, 0,  0, 0, 0, 0, 0, 4],
+                    [8, 2, 2,  2, 2,  2, 2, 2, 2, 2, 7]
                 ];
                 var tileSheet = new Image();
-                
                 var playerChar = new Image();
+                var monsterChar1 = new Image();
                 
                 tileSheet.src = "Tilesheet.png";
                 playerChar.src = 'pcDown.png';
+                monsterChar1.src = 'Monster1.png'
 
                 tileSheet.onload = function() {
                     draw();
@@ -69,19 +73,9 @@
                                 allowedPathX.push(posX);
                                 allowedPathY.push(posY);
                             }
-
-                            // if (mapArray[i][j] == 1) {
-                            //     ctxWalls.drawImage(wall, posX, posY, 32, 45);
-                            // }
-                            // if (mapArray[i][j] == 0) {
-                            //     ctxBg.drawImage(ground, posX, posY, 32, 32);
-                            // }
-                            // if (mapArray[i][j] == 8) {
-                            //     ctxBg.drawImage(outside, posX, posY, 32, 45);
-                            // }
-                            // if (mapArray[i][j] == 2) {
-                            //     ctxBg.drawImage(wall, posX, posY-21, 32, 45);
-                            // }
+                            if (value != 0) {
+                                walls.push(posX, posY);
+                            }
                             posX += 32;
                         }
                         posX = 0;
@@ -90,6 +84,9 @@
                 }
                 function drawPlayer(canvasX, canvasY) {
                 ctxPc.drawImage(playerChar, canvasX, canvasY)
+                }
+                function drawMonster(x, y) {
+                    ctxPc.drawImage(monsterChar1, x, y)
                 }
                 const animationLoop = [0, 1, 0, 2];
                 let currentLoopIndex = 0;
@@ -107,22 +104,42 @@
                 }
                 */
                 const moveSpeed = 1;
+                const monsterMoveSpeed = 0.5;
                 let positionX = 32;
                 let positionY = 12;
                 let playerUp = false;
                 let playerDown = false;
                 let playerLeft = false;
                 let playerRight = false;
+                var clippingPosY = positionY + 12;
+                let monster1StartX = 5 * gameTiles;
+                let monster1EndX = (4 * gameTiles) + monster1StartX;
+                let monsterPosX = 5 * gameTiles
+                let monsterPosY = (5 * gameTiles) - 12;
+                
+                
+                monsterStart = true;
+                monsterEnd = false;
+                
                 console.log(allowedPathY);
+                console.log(walls);
+                console.log(monster1EndX)
 
+                
                 function gameLoop() {
                     ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
                     if (playerUp == true) {
                         for (let i = 0; i < allowedPathY.length; i++) {
-                            if (positionY == allowedPathY[i]) {
+                            var pathX = allowedPathX[i];
+                            var pathY = allowedPathY[i];
+                            var path = {x: pathX, y: pathY, width: 32, height: 32}
+                            if (path.x < positionX + 32 &&
+                                path.x + path.width > positionX &&
+                                path.y < clippingPosY + 20 &&
+                                path.y + path.height > clippingPosY) {
                                 positionY -= moveSpeed;
                             }
-                            
+                            //positionY -= moveSpeed;
                         }
                         //positionY -= moveSpeed;
                     }
@@ -135,11 +152,32 @@
                     else if (playerRight == true) {
                         positionX += moveSpeed;
                     }
+                    if (monsterPosX == monster1StartX) {
+                        monsterStart = true;
+                    }
+                    else if (monsterPosX == monster1EndX) {
+                        monsterStart = false;
+                        monsterEnd = true;
+                    }
+                    monsterWalk(monsterStart, monsterEnd);
                     drawPlayer(positionX, positionY);
+                    drawMonster(monsterPosX, monsterPosY)
                     window.requestAnimationFrame(gameLoop);
-                    console.log(positionX, positionY);
+                    //console.log(positionX, positionY);
                 }
                 gameLoop();
+                
+
+
+                function monsterWalk(monsterStart, monsterEnd) {
+                    
+                    if (monsterStart) {
+                        monsterPosX += monsterMoveSpeed;
+                    }
+                    else if (monsterEnd) {
+                        monsterPosX -= monsterMoveSpeed;
+                    }
+                }
             //}
             
 

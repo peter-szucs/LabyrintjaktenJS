@@ -10,7 +10,6 @@ canvas {
     left: 12px;
 }
 #wallCanvas {
-    border: 1px solid black;
     z-index: 10;
 }
 #pcCanvas {
@@ -18,6 +17,7 @@ canvas {
 }
 #bgCanvas {
     z-index: 0;
+    border: 1px solid black;
 }
 .button {
     background-color: darkslategray;
