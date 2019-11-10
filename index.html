@@ -24,7 +24,7 @@
                 var ctxBg = bgCanvas.getContext('2d');
                 var allowedPathX = [];
                 var allowedPathY = [];
-                var walls = [];
+                var walls = [[]];
                 var gameTiles = 32;
                 var mapArray = [
                     [5, 1, 9,  1, 1,  1, 1, 1, 1, 1, 6],
@@ -74,7 +74,7 @@
                                 allowedPathY.push(posY);
                             }
                             if (value != 0) {
-                                walls.push(posX, posY);
+                                walls.push([posX, posY]);
                             }
                             posX += 32;
                         }
@@ -135,7 +135,7 @@
                                 path.x + path.width > positionX &&
                                 path.y < clippingPosY + 20 &&
                                 path.y + path.height > clippingPosY) {
-                                positionY -= moveSpeed;
+                                moveCharacter(0, -moveSpeed, facingUp);
                             }
                             //positionY -= moveSpeed;
                         }
@@ -143,17 +143,17 @@
                     }
                     else if (playerDown == true) {
                         currentDirection = facingDown;
-                        positionY += moveSpeed;
+                        moveCharacter(0, moveSpeed, facingDown);
                         hasMoved = true;
                     }
                     if (playerLeft == true) {
                         currentDirection = facingLeft;
-                        positionX -= moveSpeed;
+                        moveCharacter(-moveSpeed, 0, facingLeft);
                         hasMoved = true;
                     }
                     else if (playerRight == true) {
                         currentDirection = facingRight;
-                        positionX += moveSpeed;
+                        moveCharacter(moveSpeed, 0, facingRight);
                         hasMoved = true;
                     }
                     if (hasMoved) {
@@ -174,6 +174,9 @@
                         monsterEnd = true;
                     }
                     monsterWalk(monsterStart, monsterEnd);
+                    if (!hasMoved) {
+                        currentLoopIndex = 0;
+                    }
                     drawPlayer(animationLoop[currentLoopIndex], currentDirection, positionX, positionY);
                     drawMonster(monsterPosX, monsterPosY)
                     window.requestAnimationFrame(gameLoop);
@@ -181,7 +184,16 @@
                 }
                 gameLoop();
                 
-
+                function moveCharacter(deltaX, deltaY, direction) {
+                    if (positionX + deltaX > 32 && positionX + 32 + deltaX < pcCanvas.width - 32) {
+                        //if (positionX + deltaX >)
+                        positionX += deltaX;
+                    }
+                    if (positionY + deltaY > 0 && positionY + 32 + deltaY < pcCanvas.height - 32) {
+                        positionY += deltaY;
+                    }
+                    currentDirection = direction;
+                }
 
                 function monsterWalk(monsterStart, monsterEnd) {
                     
