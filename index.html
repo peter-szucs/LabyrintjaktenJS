@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="sv">
     <head>
-        <meta name="viewport" content="width-device-width, initial-scale = 1.0">
+        <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
         <img id="logga" src="Logga.png">
+        <img id="healthimg" src="Health.png">
+        <img id="healthbar" src="Healthbar.png">
+        <img id="cog" src="SettingsCog.png">
         <canvas id="bgCanvas" width="352" height="576"></canvas>
         <canvas id="pcCanvas" width="352" height="576"></canvas>
         <canvas id="wallCanvas" width="352" height="455"></canvas>
@@ -16,6 +19,7 @@
         <script>
             //window.onload = function() {
                 var loop = true;
+                var health = 3;
                 var wallCanvas = document.getElementById('wallCanvas');
                 var pcCanvas = document.getElementById('pcCanvas');
                 var bgCanvas = document.getElementById('bgCanvas');
@@ -52,7 +56,7 @@
                 
                 tileSheet.src = "Tilesheet.png";
                 playerChar.src = 'PCTilesheet.png';
-                monsterChar1.src = 'Monster1.png'
+                monsterChar1.src = 'Monster1TileSheet.png'
 
                 tileSheet.onload = function() {
                     draw();
@@ -85,8 +89,8 @@
                 function drawPlayer(frameX, frameY, canvasX, canvasY) {
                 ctxPc.drawImage(playerChar, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
                 }
-                function drawMonster(x, y) {
-                    ctxPc.drawImage(monsterChar1, x, y)
+                function drawMonster(frameX, frameY, canvasX, canvasY) {
+                    ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
                 }
                 const animationLoop = [0, 1, 0, 2];
                 let currentLoopIndex = 0;
@@ -111,11 +115,16 @@
                 let monster1EndX = (4 * gameTiles) + monster1StartX;
                 let monsterPosX = 5 * gameTiles
                 let monsterPosY = (5 * gameTiles) - 12;
+                const monster1FaceRight = 0;
+                const monster1FaceLeft = 1;
+                let monster1CurrentDirection = monster1FaceRight;
+                let monster1FrameCount = 0;
+                let monster1CurrentLoopIndex = 0;
                 const frameLimit = 12;
                 
                 
-                monsterStart = true;
-                monsterEnd = false;
+                let monsterStart = true;
+                let monsterEnd = false;
                 
                 console.log(allowedPathY);
                 console.log(walls);
@@ -155,17 +164,20 @@
                     }
                     if (monsterPosX == monster1StartX) {
                         monsterStart = true;
+                        
+                        monsterEnd = false;
                     }
                     else if (monsterPosX == monster1EndX) {
                         monsterStart = false;
+                        
                         monsterEnd = true;
                     }
-                    monsterWalk(monsterStart, monsterEnd);
+                    monster1Walk(monsterStart, monsterEnd);
                     if (!hasMoved) {
                         currentLoopIndex = 0;
                     }
                     drawPlayer(animationLoop[currentLoopIndex], currentDirection, positionX, positionY);
-                    drawMonster(monsterPosX, monsterPosY)
+                    drawMonster(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY)
                     window.requestAnimationFrame(gameLoop);
                     //console.log(positionX, positionY);
                     //console.log(clippingPosX, clippingPosY);
@@ -194,13 +206,31 @@
                     currentDirection = direction;
                 }
 
-                function monsterWalk(monsterStart, monsterEnd) {
+                function monster1Walk(monsterStart, monsterEnd) {
                     
                     if (monsterStart) {
+                        monster1CurrentDirection = monster1FaceRight;
+                        monster1FrameCount++
+                        if (monster1FrameCount >= frameLimit) {
+                            monster1FrameCount = 0;
+                            monster1CurrentLoopIndex++;
+                            if (monster1CurrentLoopIndex >= animationLoop.length) {
+                                monster1CurrentLoopIndex = 0;
+                            }
+                        }
                         monsterPosX += monsterMoveSpeed;
                     }
                     else if (monsterEnd) {
                         monsterPosX -= monsterMoveSpeed;
+                        monster1CurrentDirection = monster1FaceLeft;
+                        monster1FrameCount++
+                        if (monster1FrameCount >= frameLimit) {
+                            monster1FrameCount = 0;
+                            monster1CurrentLoopIndex++;
+                            if (monster1CurrentLoopIndex >= animationLoop.length) {
+                                monster1CurrentLoopIndex = 0;
+                            }
+                        }
                     }
                 }
             //}
