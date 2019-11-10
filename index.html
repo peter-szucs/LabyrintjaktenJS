@@ -51,7 +51,7 @@
                 var monsterChar1 = new Image();
                 
                 tileSheet.src = "Tilesheet.png";
-                playerChar.src = 'pcDown.png';
+                playerChar.src = 'PCTilesheet.png';
                 monsterChar1.src = 'Monster1.png'
 
                 tileSheet.onload = function() {
@@ -82,8 +82,8 @@
                         posY += 32;
                     }
                 }
-                function drawPlayer(canvasX, canvasY) {
-                ctxPc.drawImage(playerChar, canvasX, canvasY)
+                function drawPlayer(frameX, frameY, canvasX, canvasY) {
+                ctxPc.drawImage(playerChar, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
                 }
                 function drawMonster(x, y) {
                     ctxPc.drawImage(monsterChar1, x, y)
@@ -91,18 +91,12 @@
                 const animationLoop = [0, 1, 0, 2];
                 let currentLoopIndex = 0;
                 let frameCount = 0;
-                let currentDirection = 0;
+                const facingDown = 0;
+                const facingUp = 3;
+                const facingLeft = 1;
+                const facingRight = 2;
+                let currentDirection = facingDown;
 
-                /*let keyPresses = {};
-                window.addEventListener('keydown', keyDownListener, false);
-                function keyDownListener(event) {
-                    keyPresses[event.key] = true;
-                }
-                window.addEventListener('keyup', keyUpListener, false);
-                function keyUpListener(event) {
-                    keyPresses[event.key] = false;
-                }
-                */
                 const moveSpeed = 1;
                 const monsterMoveSpeed = 0.5;
                 let positionX = 32;
@@ -116,6 +110,7 @@
                 let monster1EndX = (4 * gameTiles) + monster1StartX;
                 let monsterPosX = 5 * gameTiles
                 let monsterPosY = (5 * gameTiles) - 12;
+                const frameLimit = 12;
                 
                 
                 monsterStart = true;
@@ -128,7 +123,10 @@
                 
                 function gameLoop() {
                     ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
+                    let hasMoved = false;
                     if (playerUp == true) {
+                        currentDirection = facingUp;
+                        hasMoved = true;
                         for (let i = 0; i < allowedPathY.length; i++) {
                             var pathX = allowedPathX[i];
                             var pathY = allowedPathY[i];
@@ -144,13 +142,29 @@
                         //positionY -= moveSpeed;
                     }
                     else if (playerDown == true) {
+                        currentDirection = facingDown;
                         positionY += moveSpeed;
+                        hasMoved = true;
                     }
                     if (playerLeft == true) {
+                        currentDirection = facingLeft;
                         positionX -= moveSpeed;
+                        hasMoved = true;
                     }
                     else if (playerRight == true) {
+                        currentDirection = facingRight;
                         positionX += moveSpeed;
+                        hasMoved = true;
+                    }
+                    if (hasMoved) {
+                        frameCount++
+                        if (frameCount >= frameLimit) {
+                            frameCount = 0;
+                            currentLoopIndex++;
+                            if (currentLoopIndex >= animationLoop.length) {
+                                currentLoopIndex = 0;
+                            }
+                        }
                     }
                     if (monsterPosX == monster1StartX) {
                         monsterStart = true;
@@ -160,7 +174,7 @@
                         monsterEnd = true;
                     }
                     monsterWalk(monsterStart, monsterEnd);
-                    drawPlayer(positionX, positionY);
+                    drawPlayer(animationLoop[currentLoopIndex], currentDirection, positionX, positionY);
                     drawMonster(monsterPosX, monsterPosY)
                     window.requestAnimationFrame(gameLoop);
                     //console.log(positionX, positionY);
