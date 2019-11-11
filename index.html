@@ -90,7 +90,7 @@
                         allowedPathY.push(posY);
                         allowedPath.push([posX, posY])
                     }
-                    if (value != 0) {
+                    if (value != 0 && value > 12) {
                         walls.push([posX, posY]);
                     }
                     posX += 32;
@@ -141,7 +141,7 @@
         var moveRight = true;
         var moveUp = true;
         var moveDown = true;
-
+        var playerCollision = false;
         var debugArray = [];
 
 
@@ -155,24 +155,29 @@
         function gameLoop() {
             ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
             let hasMoved = false;
+
             checkNeighbour(playerX, playerY);
             if (playerUp == true) {
                 currentDirection = facingUp;
                 hasMoved = true;
+                collision();
                 moveCharacter(0, -moveSpeed, facingUp);
             } else if (playerDown == true) {
                 currentDirection = facingDown;
                 hasMoved = true;
+                collision();
                 moveCharacter(0, moveSpeed, facingDown);
             }
             if (playerLeft == true) {
                 currentDirection = facingLeft;
                 hasMoved = true;
+                collision();
                 moveCharacter(-moveSpeed, 0, facingLeft);
 
             } else if (playerRight == true) {
                 currentDirection = facingRight;
                 hasMoved = true;
+                collision();
                 moveCharacter(moveSpeed, 0, facingRight);
 
             }
@@ -208,10 +213,8 @@
             //console.log(moveUp, moveDown, moveLeft, moveRight)
             //console.log(debugArray)
             //console.log(clippingPosX, clippingPosY);
-            document.getElementById("bool2").innerHTML = moveUp;
-            document.getElementById("bool3").innerHTML = moveDown;
-            document.getElementById("bool4").innerHTML = moveLeft;
-            document.getElementById("bool5").innerHTML = moveRight;
+            document.getElementById("bool2").innerHTML = playerCollision;
+
         }
         gameLoop();
 
@@ -268,24 +271,57 @@
             //     playerY += deltaY;
             // }
 
+            // if (deltaX == -1) {
+            //     if (moveCheck(deltaX, 0)) {
+
+            //         playerX += deltaX
+
+            //     }
+            // } else if (deltaX == 1) {
+            //     if (moveCheck(deltaX, 0)) {
+            //         playerX += deltaX
+            //     }
+            // }
+            // if (deltaY == -1) {
+            //     if (moveCheckY(0, deltaY)) {
+            //         playerY += deltaY
+            //     }
+            // } else if (deltaY == 1) {
+            //     if (moveCheckY(0, deltaY)) {
+            //         playerY += deltaY
+            //     }
+            // }
+
             if (deltaX == -1) {
-                if (moveCheck(deltaX, 0)) {
+                if (!playerCollision) {
 
                     playerX += deltaX
 
+                } else if (playerCollision) {
+                    playerX += 1;
+                    playerCollision = false;
                 }
             } else if (deltaX == 1) {
-                if (moveCheck(deltaX, 0)) {
+                if (!playerCollision) {
                     playerX += deltaX
+                } else if (playerCollision) {
+                    //playerX += -1;
+                    playerCollision = false;
                 }
             }
             if (deltaY == -1) {
-                if (moveCheckY(0, deltaY)) {
+                if (!playerCollision) {
                     playerY += deltaY
+                } else if (playerCollision) {
+                    //playerY += 1;
+                    playerCollision = false;
                 }
             } else if (deltaY == 1) {
-                if (moveCheckY(0, deltaY)) {
+                if (!playerCollision) {
                     playerY += deltaY
+                } else if (playerCollision) {
+                    //playerY += -1;
+                    playerCollision = false;
                 }
             }
 
@@ -334,14 +370,14 @@
             }
         }
 
-        function charBlockPosY(charX, charY) {
+        function charBlockPos2(charX, charY) {
 
             for (let i = 0; i < allowedPath.length; i++) {
                 clipPosY = charY + 9;
-                if (playerX == allowedPath[i][0] &&
-                    playerX + 32 <= allowedPath[i][0] + 32 &&
-                    clipPosY >= allowedPath[i][1] &&
-                    clipPosY <= allowedPath[i][1] + 32) {
+                if (charX < allowedPath[i][0] + 32 &&
+                    playerX + 32 <= allowedPath[i][0] &&
+                    clipPosY < allowedPath[i][1] + 32 &&
+                    clipPosY + 32 > allowedPath[i][1]) {
                     return true;
                 }
 
@@ -376,7 +412,12 @@
 
         function collision() {
             for (let i = 0; i < walls.length; i++) {
-
+                if (walls[i][0] < playerX + 32 &&
+                    walls[i][0] + 32 > playerX &&
+                    walls[i][1] < playerY + 9 + 32 &&
+                    walls[i][1] + 32 > playerY + 9) {
+                    playerCollision = true;
+                }
 
             }
         }
