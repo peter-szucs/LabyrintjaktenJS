@@ -1,242 +1,439 @@
 <!DOCTYPE html>
 <html lang="sv">
-    <head>
-        <meta charset="UTF-8">
-        <link rel="stylesheet" type="text/css" href="style.css">
-    </head>
-    <body>
-        <img id="logga" src="Logga.png">
-        <img id="healthimg" src="Health.png">
-        <img id="healthbar" src="Healthbar.png">
-        <img id="cog" src="SettingsCog.png">
-        <canvas id="bgCanvas" width="352" height="576"></canvas>
-        <canvas id="pcCanvas" width="352" height="576"></canvas>
-        <canvas id="wallCanvas" width="352" height="455"></canvas>
-        <input type="button" id="upButton" class="button" onmousedown="playerUp=true" onmouseup="playerUp=false" value="Upp">
-        <input type="button" id="leftButton" class="button" onmousedown="playerLeft=true" onmouseup="playerLeft=false" value=" V ">
-        <input type="button" id="rightButton" class="button" onmousedown="playerRight=true" onmouseup="playerRight=false" value=" H ">
-        <input type="button" id="downButton" class="button" onmousedown="playerDown=true" onmouseup="playerDown=false" value="Ner">
-        <script>
-            //window.onload = function() {
-                var loop = true;
-                var health = 3;
-                var wallCanvas = document.getElementById('wallCanvas');
-                var pcCanvas = document.getElementById('pcCanvas');
-                var bgCanvas = document.getElementById('bgCanvas');
-                var ctxWalls = wallCanvas.getContext('2d');
-                var ctxPc = pcCanvas.getContext('2d');
-                var ctxBg = bgCanvas.getContext('2d');
-                var allowedPathX = [];
-                var allowedPathY = [];
-                var walls = [];
-                var gameTiles = 32;
-                var mapArray = [
-                    [5, 1, 9,  1, 1,  1, 1, 1, 1, 1, 6],
-                    [3, 0, 14, 0, 0,  0, 0, 0, 0, 0, 4],
-                    [3, 0, 14, 0, 16, 0, 26,13,13,13,12],
-                    [3, 0, 15, 0, 14, 0, 14,0, 0, 0, 4],
-                    [3, 0, 0,  0, 14, 0, 15,0, 18,13,12],
-                    [11,13,13, 13,24, 0, 0, 0, 0, 0, 4],
-                    [3, 0, 0,  0, 0,  0, 26,13,25,0, 4],
-                    [3, 0, 26, 13,13,13, 24,0, 14,0, 4],
-                    [3, 0, 15, 0, 0,  0, 0, 0, 23,13,12],
-                    [3, 0, 0,  0, 16, 0, 16,0, 0, 0, 4],
-                    [11,13,13, 13,21, 0, 23,13,13,13,12],
-                    [3, 0, 0,  0, 14, 0, 0, 0, 0, 0, 0],
-                    [3, 0, 16, 0, 14, 0, 18,13,25,0, 4],
-                    [3, 0, 14, 0, 15, 0, 0, 0, 14,0, 4],
-                    [3, 0, 14, 0, 0,  0, 16,0, 14,0, 4],
-                    [3, 0, 23, 13,13, 13,20,13,24,0, 4],
-                    [3, 0, 0,  0, 0,  0, 0, 0, 0, 0, 4],
-                    [8, 2, 2,  2, 2,  2, 2, 2, 2, 2, 7]
-                ];
-                var tileSheet = new Image();
-                var playerChar = new Image();
-                var monsterChar1 = new Image();
-                
-                tileSheet.src = "Tilesheet.png";
-                playerChar.src = 'PCTilesheet.png';
-                monsterChar1.src = 'Monster1TileSheet.png'
 
-                tileSheet.onload = function() {
-                    draw();
-                }
-                playerChar.onload = function() {
-                    ctxPc.drawImage(playerChar, 100, 68, 32, 41);
-                }
-                function draw() {
-                    var posX = 0;
-                    var posY = 0;
-                    for (var i = 0; i < mapArray.length; i++) {
-                        for (var j = 0; j < mapArray[i].length; j++) {
-                            var value = mapArray[i][j];
-                            var sourceX = (value % 6) * 32;
-                            var sourceY = Math.floor(value / 6) * 32;
-                            ctxBg.drawImage(tileSheet, sourceX, sourceY, 32, 32, posX, posY, 32, 32);
-                            if (value == 0) {
-                                allowedPathX.push(posX);
-                                allowedPathY.push(posY);
-                            }
-                            if (value != 0) {
-                                walls.push([posX, posY]);
-                            }
-                            posX += 32;
-                        }
-                        posX = 0;
-                        posY += 32;
-                    }
-                }
-                function drawPlayer(frameX, frameY, canvasX, canvasY) {
-                ctxPc.drawImage(playerChar, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
-                }
-                function drawMonster(frameX, frameY, canvasX, canvasY) {
-                    ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
-                }
-                const animationLoop = [0, 1, 0, 2];
-                let currentLoopIndex = 0;
-                let frameCount = 0;
-                const facingDown = 0;
-                const facingUp = 3;
-                const facingLeft = 1;
-                const facingRight = 2;
-                let currentDirection = facingDown;
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
 
-                const moveSpeed = 1;
-                const monsterMoveSpeed = 0.5;
-                let positionX = 32;
-                let positionY = 12;
-                let playerUp = false;
-                let playerDown = false;
-                let playerLeft = false;
-                let playerRight = false;
-                // var clippingPosY = positionY + 12;
-                // var clippingPosX = positionX + 2;
-                let monster1StartX = 5 * gameTiles;
-                let monster1EndX = (4 * gameTiles) + monster1StartX;
-                let monsterPosX = 5 * gameTiles
-                let monsterPosY = (5 * gameTiles) - 12;
-                const monster1FaceRight = 0;
-                const monster1FaceLeft = 1;
-                let monster1CurrentDirection = monster1FaceRight;
-                let monster1FrameCount = 0;
-                let monster1CurrentLoopIndex = 0;
-                const frameLimit = 12;
-                
-                
-                let monsterStart = true;
-                let monsterEnd = false;
-                
-                console.log(allowedPathY);
-                console.log(walls);
-                
-                function gameLoop() {
-                    ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
-                    let hasMoved = false;
-                    if (playerUp == true) {
-                        currentDirection = facingUp;
-                        hasMoved = true;
-                        moveCharacter(0, -moveSpeed, facingUp);
+<body>
+    <img id="logga" src="Logga.png">
+    <img id="healthimg" src="Health.png">
+    <img id="healthbar" src="Healthbar.png">
+    <img id="cog" src="SettingsCog.png">
+    <canvas id="bgCanvas" width="352" height="576"></canvas>
+    <canvas id="pcCanvas" width="352" height="576"></canvas>
+    <canvas id="wallCanvas" width="352" height="455"></canvas>
+    <input type="button" id="upButton" class="button" onmousedown="playerUp=true" onmouseup="playerUp=false" value="Upp">
+    <input type="button" id="leftButton" class="button" onmousedown="playerLeft=true" onmouseup="playerLeft=false" value=" V ">
+    <input type="button" id="rightButton" class="button" onmousedown="playerRight=true" onmouseup="playerRight=false" value=" H ">
+    <input type="button" id="downButton" class="button" onmousedown="playerDown=true" onmouseup="playerDown=false" value="Ner">
+    <div id="bool">
+        <p id="bool2"></p>
+        <p id="bool3"></p>
+        <p id="bool4"></p>
+        <p id="bool5"></p>
+    </div>
+    <script>
+        //window.onload = function() {
+        var loop = true;
+        var health = 3;
+        var wallCanvas = document.getElementById('wallCanvas');
+        var pcCanvas = document.getElementById('pcCanvas');
+        var bgCanvas = document.getElementById('bgCanvas');
+        var ctxWalls = wallCanvas.getContext('2d');
+        var ctxPc = pcCanvas.getContext('2d');
+        var ctxBg = bgCanvas.getContext('2d');
+        var allowedPathX = [];
+        var allowedPathY = [];
+        var walls = [];
+        var allowedPath = [];
+        var gameTiles = 32;
+        var currentPlayerX = 1;
+        var currentPlayerY = 1;
+        var mapArray = [
+            [5, 1, 9, 1, 1, 1, 1, 1, 1, 1, 6],
+            [3, 0, 14, 0, 0, 0, 0, 0, 0, 0, 4],
+            [3, 0, 14, 0, 16, 0, 26, 13, 13, 13, 12],
+            [3, 0, 15, 0, 14, 0, 14, 0, 0, 0, 4],
+            [3, 0, 0, 0, 14, 0, 15, 0, 18, 13, 12],
+            [11, 13, 13, 13, 24, 0, 0, 0, 0, 0, 4],
+            [3, 0, 0, 0, 0, 0, 26, 13, 25, 0, 4],
+            [3, 0, 26, 13, 13, 13, 24, 0, 14, 0, 4],
+            [3, 0, 15, 0, 0, 0, 0, 0, 23, 13, 12],
+            [3, 0, 0, 0, 16, 0, 16, 0, 0, 0, 4],
+            [11, 13, 13, 13, 21, 0, 23, 13, 13, 13, 12],
+            [3, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0],
+            [3, 0, 16, 0, 14, 0, 18, 13, 25, 0, 4],
+            [3, 0, 14, 0, 15, 0, 0, 0, 14, 0, 4],
+            [3, 0, 14, 0, 0, 0, 16, 0, 14, 0, 4],
+            [3, 0, 23, 13, 13, 13, 20, 13, 24, 0, 4],
+            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4],
+            [8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7]
+        ];
+        var tileSheet = new Image();
+        var playerChar = new Image();
+        var monsterChar1 = new Image();
+
+        tileSheet.src = "Tilesheet.png";
+        playerChar.src = 'PCTilesheet.png';
+        monsterChar1.src = 'Monster1TileSheet.png'
+
+        tileSheet.onload = function() {
+            draw();
+        }
+        playerChar.onload = function() {
+            ctxPc.drawImage(playerChar, 100, 68, 32, 41);
+        }
+
+        function draw() {
+            var posX = 0;
+            var posY = 0;
+            for (var i = 0; i < mapArray.length; i++) {
+                for (var j = 0; j < mapArray[i].length; j++) {
+                    var value = mapArray[i][j];
+                    var sourceX = (value % 6) * 32;
+                    var sourceY = Math.floor(value / 6) * 32;
+                    ctxBg.drawImage(tileSheet, sourceX, sourceY, 32, 32, posX, posY, 32, 32);
+                    if (value == 0) {
+                        allowedPathX.push(posX);
+                        allowedPathY.push(posY);
+                        allowedPath.push([posX, posY])
                     }
-                    else if (playerDown == true) {
-                        currentDirection = facingDown;
-                        moveCharacter(0, moveSpeed, facingDown);
-                        hasMoved = true;
+                    if (value != 0) {
+                        walls.push([posX, posY]);
                     }
-                    if (playerLeft == true) {
-                        currentDirection = facingLeft;
-                        moveCharacter(-moveSpeed, 0, facingLeft);
-                        hasMoved = true;
-                    }
-                    else if (playerRight == true) {
-                        currentDirection = facingRight;
-                        moveCharacter(moveSpeed, 0, facingRight);
-                        hasMoved = true;
-                    }
-                    if (hasMoved) {
-                        frameCount++
-                        if (frameCount >= frameLimit) {
-                            frameCount = 0;
-                            currentLoopIndex++;
-                            if (currentLoopIndex >= animationLoop.length) {
-                                currentLoopIndex = 0;
-                            }
-                        }
-                    }
-                    if (monsterPosX == monster1StartX) {
-                        monsterStart = true;
-                        
-                        monsterEnd = false;
-                    }
-                    else if (monsterPosX == monster1EndX) {
-                        monsterStart = false;
-                        
-                        monsterEnd = true;
-                    }
-                    monster1Walk(monsterStart, monsterEnd);
-                    if (!hasMoved) {
+                    posX += 32;
+                }
+                posX = 0;
+                posY += 32;
+            }
+        }
+
+        function drawPlayer(frameX, frameY, canvasX, canvasY) {
+            ctxPc.drawImage(playerChar, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
+        }
+
+        function drawMonster(frameX, frameY, canvasX, canvasY) {
+            ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
+        }
+        const animationLoop = [0, 1, 0, 2];
+        let currentLoopIndex = 0;
+        let frameCount = 0;
+        const facingDown = 0;
+        const facingUp = 3;
+        const facingLeft = 1;
+        const facingRight = 2;
+        let currentDirection = facingDown;
+
+        const moveSpeed = 1;
+        const monsterMoveSpeed = 0.5;
+        let playerX = 32;
+        let playerY = 23;
+        let playerUp = false;
+        let playerDown = false;
+        let playerLeft = false;
+        let playerRight = false;
+        // var clippingPosY = playerY + 12;
+        // var clippingPosX = playerX + 2;
+        let monster1StartX = 5 * gameTiles;
+        let monster1EndX = (4 * gameTiles) + monster1StartX;
+        let monsterPosX = 5 * gameTiles
+        let monsterPosY = (5 * gameTiles) - 12;
+        const monster1FaceRight = 0;
+        const monster1FaceLeft = 1;
+        let monster1CurrentDirection = monster1FaceRight;
+        let monster1FrameCount = 0;
+        let monster1CurrentLoopIndex = 0;
+        const frameLimit = 12;
+        let currentBlockPos = 0;
+        var moveLeft = true;
+        var moveRight = true;
+        var moveUp = true;
+        var moveDown = true;
+
+        var debugArray = [];
+
+
+        let monsterStart = true;
+        let monsterEnd = false;
+
+        console.log(allowedPathY);
+        console.log(walls);
+        console.log(allowedPath);
+
+        function gameLoop() {
+            ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
+            let hasMoved = false;
+            checkNeighbour(playerX, playerY);
+            if (playerUp == true) {
+                currentDirection = facingUp;
+                hasMoved = true;
+                moveCharacter(0, -moveSpeed, facingUp);
+            } else if (playerDown == true) {
+                currentDirection = facingDown;
+                hasMoved = true;
+                moveCharacter(0, moveSpeed, facingDown);
+            }
+            if (playerLeft == true) {
+                currentDirection = facingLeft;
+                hasMoved = true;
+                moveCharacter(-moveSpeed, 0, facingLeft);
+
+            } else if (playerRight == true) {
+                currentDirection = facingRight;
+                hasMoved = true;
+                moveCharacter(moveSpeed, 0, facingRight);
+
+            }
+            if (hasMoved) {
+                frameCount++
+                if (frameCount >= frameLimit) {
+                    frameCount = 0;
+                    currentLoopIndex++;
+                    if (currentLoopIndex >= animationLoop.length) {
                         currentLoopIndex = 0;
                     }
-                    drawPlayer(animationLoop[currentLoopIndex], currentDirection, positionX, positionY);
-                    drawMonster(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY)
-                    window.requestAnimationFrame(gameLoop);
-                    //console.log(positionX, positionY);
-                    //console.log(clippingPosX, clippingPosY);
                 }
-                gameLoop();
-                
-                function moveCharacter(deltaX, deltaY, direction) {
-                    var clippingPosY = positionY + 12;
-                    var clippingPosX = positionX + 2;
-                    for (let i = 0; i < walls.length; i++) {
-                            if (clippingPosX + deltaX > walls[i][0] + 32 &&
-                                clippingPosX + 28 + deltaX < walls[i][0] &&
-                                clippingPosY + deltaY > walls[i][1] + 32 &&
-                                clippingPosY + 32 + deltaY < walls[i][1]) {
-                                    positionX += deltaX;
-                                    positionY += deltaY;
-                            }
+            }
+            if (monsterPosX == monster1StartX) {
+                monsterStart = true;
+
+                monsterEnd = false;
+            } else if (monsterPosX == monster1EndX) {
+                monsterStart = false;
+
+                monsterEnd = true;
+            }
+            monster1Walk(monsterStart, monsterEnd);
+            if (!hasMoved) {
+                currentLoopIndex = 0;
+            }
+            drawPlayer(animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
+            drawMonster(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY)
+            window.requestAnimationFrame(gameLoop);
+            console.log(playerX, playerY);
+
+            //console.log(charBlockPos(playerX, playerY));
+            //console.log(moveUp, moveDown, moveLeft, moveRight)
+            //console.log(debugArray)
+            //console.log(clippingPosX, clippingPosY);
+            document.getElementById("bool2").innerHTML = moveUp;
+            document.getElementById("bool3").innerHTML = moveDown;
+            document.getElementById("bool4").innerHTML = moveLeft;
+            document.getElementById("bool5").innerHTML = moveRight;
+        }
+        gameLoop();
+
+        function moveCharacter(deltaX, deltaY, direction) {
+            var clippingPosY = playerY + 12;
+            var clippingPosX = playerX + 2;
+            for (let i = 0; i < walls.length; i++) {
+                // if (clippingPosX + deltaX > walls[i][0] + 32 &&
+                //     clippingPosX + 28 + deltaX < walls[i][0] &&
+                //     clippingPosY + deltaY > walls[i][1] + 32 &&
+                //     clippingPosY + 32 + deltaY < walls[i][1]) {
+                //     playerX += deltaX;
+                //     playerY += deltaY;
+                // }
+                // if (playerX + deltaX > walls[i][0] &&
+                //     playerY + deltaY > walls[i][1] &&
+                //     playerX + deltaX > walls[i][0] + 32 &&
+                //     playerY + deltaY > walls[i][1] + 32) {
+                //     playerX += deltaX;
+                //     playerY += deltaY;
+                // }
+                // if (playerX + deltaX > walls[i][0] &&
+                //     playerX + 32 + deltaX < walls[i][0] &&
+                //     playerY > walls[i][1]) {
+                //     playerX += deltaX;
+                // }
+                // if (playerY + deltaY > walls[i][1] &&
+                //     playerY + 32 + deltaY < walls[i][1] &&
+                //     playerX > walls[i][0]) {
+
+                //     playerY += deltaY;
+                // }
+                // if (playerX + deltaX > walls[i][0] + 32 &&
+                //     playerX + 32 + deltaX < walls[i][0] &&
+                //     playerY + deltaY > walls[i][1] + 32 &&
+                //     playerY + 32 + deltaY < walls[i][1]) {
+                //     playerX += deltaX;
+                //     playerY += deltaY;
+                // }
+
+            }
+            // if (charBlockPos(playerX, playerY)) {
+            //     playerX += deltaX;
+            // }
+            // if (charBlockPos(playerX, playerY)) {
+            //     playerY += deltaY;
+            // }
+
+            // if (playerX + deltaX > 32 && playerX + 32 + deltaX < pcCanvas.width - 32) {
+            //     //if (playerX + deltaX >)
+            //     playerX += deltaX;
+            // }
+            // if (playerY + deltaY > 0 && playerY + 32 + deltaY < pcCanvas.height - 32) {
+            //     playerY += deltaY;
+            // }
+
+            if (deltaX == -1) {
+                if (moveCheck(deltaX, 0)) {
+
+                    playerX += deltaX
+
+                }
+            } else if (deltaX == 1) {
+                if (moveCheck(deltaX, 0)) {
+                    playerX += deltaX
+                }
+            }
+            if (deltaY == -1) {
+                if (moveCheckY(0, deltaY)) {
+                    playerY += deltaY
+                }
+            } else if (deltaY == 1) {
+                if (moveCheckY(0, deltaY)) {
+                    playerY += deltaY
+                }
+            }
+
+            // if (moveDown) {
+            //     playerY += deltaY;
+            // } else if (moveUp) {
+            //     playerY += deltaY;
+            // }
+            // if (moveLeft) {
+            //     playerX += deltaX;
+            // } else if (moveRight) {
+            //     playerX += deltaX;
+            // } else {
+            //     playerY += 0;
+            //     playerX += 0;
+            // }
+            currentDirection = direction;
+
+        }
+
+
+        function monster1Walk(monsterStart, monsterEnd) {
+
+            if (monsterStart) {
+                monster1CurrentDirection = monster1FaceRight;
+                monster1FrameCount++
+                if (monster1FrameCount >= frameLimit) {
+                    monster1FrameCount = 0;
+                    monster1CurrentLoopIndex++;
+                    if (monster1CurrentLoopIndex >= animationLoop.length) {
+                        monster1CurrentLoopIndex = 0;
                     }
-                    // if (positionX + deltaX > 32 && positionX + 32 + deltaX < pcCanvas.width - 32) {
-                    //     //if (positionX + deltaX >)
-                    //     positionX += deltaX;
-                    // }
-                    // if (positionY + deltaY > 0 && positionY + 32 + deltaY < pcCanvas.height - 32) {
-                    //     positionY += deltaY;
-                    // }
-                    currentDirection = direction;
+                }
+                monsterPosX += monsterMoveSpeed;
+            } else if (monsterEnd) {
+                monsterPosX -= monsterMoveSpeed;
+                monster1CurrentDirection = monster1FaceLeft;
+                monster1FrameCount++
+                if (monster1FrameCount >= frameLimit) {
+                    monster1FrameCount = 0;
+                    monster1CurrentLoopIndex++;
+                    if (monster1CurrentLoopIndex >= animationLoop.length) {
+                        monster1CurrentLoopIndex = 0;
+                    }
+                }
+            }
+        }
+
+        function charBlockPosY(charX, charY) {
+
+            for (let i = 0; i < allowedPath.length; i++) {
+                clipPosY = charY + 9;
+                if (playerX == allowedPath[i][0] &&
+                    playerX + 32 <= allowedPath[i][0] + 32 &&
+                    clipPosY >= allowedPath[i][1] &&
+                    clipPosY <= allowedPath[i][1] + 32) {
+                    return true;
                 }
 
-                function monster1Walk(monsterStart, monsterEnd) {
-                    
-                    if (monsterStart) {
-                        monster1CurrentDirection = monster1FaceRight;
-                        monster1FrameCount++
-                        if (monster1FrameCount >= frameLimit) {
-                            monster1FrameCount = 0;
-                            monster1CurrentLoopIndex++;
-                            if (monster1CurrentLoopIndex >= animationLoop.length) {
-                                monster1CurrentLoopIndex = 0;
-                            }
-                        }
-                        monsterPosX += monsterMoveSpeed;
-                    }
-                    else if (monsterEnd) {
-                        monsterPosX -= monsterMoveSpeed;
-                        monster1CurrentDirection = monster1FaceLeft;
-                        monster1FrameCount++
-                        if (monster1FrameCount >= frameLimit) {
-                            monster1FrameCount = 0;
-                            monster1CurrentLoopIndex++;
-                            if (monster1CurrentLoopIndex >= animationLoop.length) {
-                                monster1CurrentLoopIndex = 0;
-                            }
-                        }
-                    }
+            }
+        }
+
+        function charBlockPos(charX, charY) {
+
+            for (let i = 0; i < allowedPath.length; i++) {
+                clipPosY = charY + 9;
+                if (charX >= allowedPath[i][0] &&
+                    charX <= allowedPath[i][0] + 32 &&
+                    clipPosY >= allowedPath[i][1] &&
+                    clipPosY <= allowedPath[i][1] + 32) {
+                    return true;
                 }
-            //}
-            
+                return false;
+            }
+        }
+
+        function moveCheck(deltaX, deltaY) {
+            if (charBlockPos((playerX + deltaX), playerY)) {
+                return true;
+            }
+        }
+
+        function moveCheckY(deltaX, deltaY) {
+            if (charBlockPos((playerX, playerY + deltaY))) {
+                return true;
+            }
+        }
+
+        function collision() {
+            for (let i = 0; i < walls.length; i++) {
 
 
-        </script>
-    </body>
+            }
+        }
+
+        function checkNeighbour(charX, charY) {
+            for (let i = 0; i < walls.length; i++) {
+                if (charY + 41 == walls[i][1] &&
+                    charX == walls[i][0]) {
+                    moveDown = false;
+                } else {
+                    moveDown = true;
+                }
+                if (charY - 9 == walls[i][1] &&
+                    charX == walls[i][0]) {
+                    moveUp = false;
+                } else {
+                    moveUp = true;
+                }
+                if (charX - 1 == walls[i][0] &&
+                    charY == walls[i][1]) {
+                    moveLeft = false;
+                } else {
+                    moveLeft = true;
+                }
+                if (charX + 32 == walls[i][0] &&
+                    charY == walls[i][1]) {
+                    moveRight = false;
+                } else {
+                    moveRight = true;
+                }
+
+                // if (charX == allowedPath[i][0] - 32 &&
+                //     charY == allowedPath[i][1]) {
+                //     moveLeft = true;
+                // }
+                // if (charX == allowedPath[i][0] + 32 &&
+                //     charY == allowedPath[i][1]) {
+                //     moveRight = true;
+                // }
+                // if (charY == allowedPath[i][1] + 41 &&
+                //     charX == allowedPath[i][0]) {
+                //     moveDown = true;
+                // }
+                // if (charY == allowedPath[i][1] - 32 &&
+                //     charX == allowedPath[i][0]) {
+                //     moveUp = true;
+                // } else {
+                //     moveUp = false;
+                //     moveDown = false;
+                //     moveLeft = false;
+                //     moveRight = false;
+                // }
+
+            }
+        }
+        //}
+    </script>
+</body>
+
 </html>

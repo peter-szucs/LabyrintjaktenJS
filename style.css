@@ -1,39 +1,53 @@
+#bool {
+    position: absolute;
+    top: 40px;
+    left: 600px;
+}
+
 #logga {
     position: absolute;
     top: 632px;
     left: 100px;
     z-index: -1;
 }
+
 #healthimg {
     position: absolute;
     top: 33px;
     left: 11px;
 }
+
 #healthbar {
     position: absolute;
     top: 37px;
     left: 33px;
 }
+
 #cog {
     position: absolute;
     top: 31px;
     left: 341px;
 }
+
 canvas {
     position: absolute;
     top: 59px;
     left: 12px;
 }
+
 #wallCanvas {
     z-index: 10;
 }
+
 #pcCanvas {
     z-index: 1;
 }
+
 #bgCanvas {
     z-index: 0;
     border: 1px solid black;
 }
+
 .button {
     background-color: darkslategray;
     border: none;
@@ -46,21 +60,25 @@ canvas {
     width: 62px;
     height: 62px;
 }
+
 #upButton {
     position: absolute;
     top: 646px;
     left: 157px;
 }
+
 #leftButton {
     position: absolute;
     top: 692px;
     left: 93px;
 }
+
 #rightButton {
     position: absolute;
     top: 692px;
     left: 221px;
 }
+
 #downButton {
     position: absolute;
     top: 728px;
