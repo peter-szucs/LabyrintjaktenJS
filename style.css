@@ -28,7 +28,6 @@
     top: 31px;
     left: 341px;
     cursor: pointer;
-    z-index: 99;
 }
 
 canvas {
@@ -37,7 +36,7 @@ canvas {
     left: 12px;
 }
 
-#wallCanvas {
+#overlayCanvas {
     z-index: 10;
 }
 

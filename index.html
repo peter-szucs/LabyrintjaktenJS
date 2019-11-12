@@ -131,6 +131,7 @@
         let playerCollision = false;
         
         let playerCell = 0;
+        let lastDirection = true;
         let  withinPath = true;
 
         let monsterStart = true;
@@ -158,24 +159,21 @@
             ctxO.fillRect(bX, bY, bW, bH);
             overlayCanvas.addEventListener('click', function(event) {
                 if (
-                    event.x > bX &&
-                    event.x < bX + bW &&
-                    event.y > bY &&
-                    event.y < bY + bH 
-                ) { //ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-                    // currentGamestate = gameLoop; 
-                    alert('Button was clicked');
+                    event.x > 0 &&
+                    event.x < overlayCanvas.width &&
+                    event.y > 0 &&
+                    event.y < overlayCanvas.height
+                ) { 
+                    afterStart();
                 }
             });
-            // window.addEventListener("click", clickOnCanvas) 
-            //ctxO.globalAlpha = 1;
-            
-            // if (overlayCanvas.onclick) {
-            //     ctxO.globalAlpha = 0;
-            //     currentGameState = gameLoop;
-            // }
-            //IF trycker på knappen -> starta spel
         }
+
+        function afterStart() {
+            ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            currentGameState = gameLoop;
+        }
+
         function clickOnCanvas() {
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
             currentGamestate = gameLoop;
@@ -192,30 +190,33 @@
         function gameLoop() {
             ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
             let hasMoved = false;
+            document.getElementById("bool5").innerHTML = playerCell;
             whatPlayerCell();
             if (playerUp == true) {
                 currentDirection = facingUp;
+                lastDirection = true;
                 hasMoved = true;
                 collision();
                 moveCharacter(0, -moveSpeed, facingUp);
             } else if (playerDown == true) {
                 currentDirection = facingDown;
+                lastDirection = true;
                 hasMoved = true;
                 collision();
                 moveCharacter(0, moveSpeed, facingDown);
             }
             if (playerLeft == true) {
                 currentDirection = facingLeft;
+                lastDirection = true;
                 hasMoved = true;
                 collision();
                 moveCharacter(-moveSpeed, 0, facingLeft);
-
             } else if (playerRight == true) {
                 currentDirection = facingRight;
+                lastDirection = false;
                 hasMoved = true;
                 collision();
                 moveCharacter(moveSpeed, 0, facingRight);
-
             }
             if (hasMoved) {
                 frameCount++
@@ -250,7 +251,7 @@
         }
 
         function mainLoop() {
-            document.getElementById("bool2").innerHTML = currentGameState;
+            //document.getElementById("bool2").innerHTML = currentGameState;
             currentGameState();
             window.requestAnimationFrame(mainLoop);
         }
@@ -318,17 +319,38 @@
 
             }
         }
-
         function whatPlayerCell() {
             for (let i = 0; i < allowedPath.length; i++) {
-                if (playerX + 2 > allowedPath[i][0] &&
-                    playerX + 2 < allowedPath[i][0] + 32 &&
-                    playerY + 40 >= allowedPath[i][1] &&
+                if (playerX + 10 > allowedPath[i][0] &&
+                    playerX + 20 < allowedPath[i][0] + 32 &&
+                    playerY + 19 >= allowedPath[i][1] &&
                     playerY + 40 <= allowedPath[i][1] + 32) {
                         playerCell = i;
                     }
             }
         }
+
+        // function whatPlayerCell() {
+        //     for (let i = 0; i < allowedPath.length; i++) {
+        //         if (playerX + 2 > allowedPath[i][0] &&
+        //             playerX + 2 < allowedPath[i][0] + 32 &&
+        //             playerY + 40 >= allowedPath[i][1] &&
+        //             playerY + 40 <= allowedPath[i][1] + 32) {
+        //                 playerCell = i;
+        //             }
+        //     }
+        // }
+
+        // function whatPlayerCellRight() {
+        //     for (let i = 0; i < allowedPath.length; i++) {
+        //         if (playerX + 26 > allowedPath[i][0] &&
+        //             playerX + 26 < allowedPath[i][0] + 32 &&
+        //             playerY + 40 >= allowedPath[i][1] &&
+        //             playerY + 40 <= allowedPath[i][1] + 32) {
+        //                 playerCell = i;
+        //             }
+        //     }
+        // }
 
         function playerPathX(x, y, deltaX, deltaY) {
             var leftCellX = 0;
