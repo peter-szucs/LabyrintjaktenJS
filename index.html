@@ -142,20 +142,20 @@
         var moveUp = true;
         var moveDown = true;
         var playerCollision = false;
-        var debugArray = [];
-
+        
+        var playerCell = 0;
+        var  withinPath = true;
 
         let monsterStart = true;
         let monsterEnd = false;
 
-        console.log(allowedPathY);
         console.log(walls);
         console.log(allowedPath);
 
         function gameLoop() {
             ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
             let hasMoved = false;
-
+            whatPlayerCell();
             checkNeighbour(playerX, playerY);
             if (playerUp == true) {
                 currentDirection = facingUp;
@@ -213,7 +213,9 @@
             //console.log(moveUp, moveDown, moveLeft, moveRight)
             //console.log(debugArray)
             //console.log(clippingPosX, clippingPosY);
-            document.getElementById("bool2").innerHTML = playerCollision;
+            //document.getElementById("bool2").innerHTML = playerCollision;
+            document.getElementById("bool4").innerHTML = "innanför: " + withinPath;
+            //document.getElementById("bool4").innerHTML = "vilken cell: " + playerCell;
 
         }
         gameLoop();
@@ -221,7 +223,7 @@
         function moveCharacter(deltaX, deltaY, direction) {
             var clippingPosY = playerY + 12;
             var clippingPosX = playerX + 2;
-            for (let i = 0; i < walls.length; i++) {
+            // for (let i = 0; i < walls.length; i++) {
                 // if (clippingPosX + deltaX > walls[i][0] + 32 &&
                 //     clippingPosX + 28 + deltaX < walls[i][0] &&
                 //     clippingPosY + deltaY > walls[i][1] + 32 &&
@@ -255,7 +257,7 @@
                 //     playerY += deltaY;
                 // }
 
-            }
+            // }
             // if (charBlockPos(playerX, playerY)) {
             //     playerX += deltaX;
             // }
@@ -265,65 +267,67 @@
 
             // if (playerX + deltaX > 32 && playerX + 32 + deltaX < pcCanvas.width - 32) {
             //     //if (playerX + deltaX >)
+            //     playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0);
             //     playerX += deltaX;
             // }
             // if (playerY + deltaY > 0 && playerY + 32 + deltaY < pcCanvas.height - 32) {
+            //     playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY);
             //     playerY += deltaY;
             // }
 
-            // if (deltaX == -1) {
-            //     if (moveCheck(deltaX, 0)) {
-
-            //         playerX += deltaX
-
-            //     }
-            // } else if (deltaX == 1) {
-            //     if (moveCheck(deltaX, 0)) {
-            //         playerX += deltaX
-            //     }
-            // }
-            // if (deltaY == -1) {
-            //     if (moveCheckY(0, deltaY)) {
-            //         playerY += deltaY
-            //     }
-            // } else if (deltaY == 1) {
-            //     if (moveCheckY(0, deltaY)) {
-            //         playerY += deltaY
-            //     }
-            // }
-
             if (deltaX == -1) {
-                if (!playerCollision) {
+                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
 
                     playerX += deltaX
 
-                } else if (playerCollision) {
-                    playerX += 1;
-                    playerCollision = false;
                 }
             } else if (deltaX == 1) {
-                if (!playerCollision) {
+                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
                     playerX += deltaX
-                } else if (playerCollision) {
-                    //playerX += -1;
-                    playerCollision = false;
                 }
             }
             if (deltaY == -1) {
-                if (!playerCollision) {
+                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
                     playerY += deltaY
-                } else if (playerCollision) {
-                    //playerY += 1;
-                    playerCollision = false;
                 }
             } else if (deltaY == 1) {
-                if (!playerCollision) {
+                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
                     playerY += deltaY
-                } else if (playerCollision) {
-                    //playerY += -1;
-                    playerCollision = false;
                 }
             }
+
+            // if (deltaX == -1) {
+            //     if (!playerCollision) {
+
+            //         playerX += deltaX
+
+            //     } else if (playerCollision) {
+            //         playerX += 1;
+            //         playerCollision = false;
+            //     }
+            // } else if (deltaX == 1) {
+            //     if (!playerCollision) {
+            //         playerX += deltaX
+            //     } else if (playerCollision) {
+            //         //playerX += -1;
+            //         playerCollision = false;
+            //     }
+            // }
+            // if (deltaY == -1) {
+            //     if (!playerCollision) {
+            //         playerY += deltaY
+            //     } else if (playerCollision) {
+            //         //playerY += 1;
+            //         playerCollision = false;
+            //     }
+            // } else if (deltaY == 1) {
+            //     if (!playerCollision) {
+            //         playerY += deltaY
+            //     } else if (playerCollision) {
+            //         //playerY += -1;
+            //         playerCollision = false;
+            //     }
+            // }
 
             // if (moveDown) {
             //     playerY += deltaY;
@@ -422,20 +426,109 @@
             }
         }
 
-        function withinBounds() {
+        function whatPlayerCell() {
+            for (let i = 0; i < allowedPath.length; i++) {
+                if (playerX + 2 > allowedPath[i][0] &&
+                    playerX + 2 < allowedPath[i][0] + 32 &&
+                    playerY + 40 >= allowedPath[i][1] &&
+                    playerY + 40 <= allowedPath[i][1] + 32) {
+                        playerCell = i;
+                    }
+            }
+        }
+
+        function playerPathX(x, y, deltaX, deltaY) {
+            var leftCellX = 0;
+            var leftCellY = 0;
+            var rightCellX = 0;
+            var rightCellY = 0;
+            var newShapeX = 0;
+            var newShapeY = 0;
+            var newShapeW = 32;
+            var go = false;
+            for (let i = 0; i < allowedPath.length; i++) {
+                if (x == allowedPath[i][0] + 32 &&
+                    y == allowedPath[i][1]) {
+                        leftCellX = allowedPath[i][0];
+                        leftCellY = allowedPath[i][1];
+                    }
+                if (x + 32 == allowedPath[i][0] &&
+                    y == allowedPath[i][1]) {
+                        rightCellX = allowedPath[i][0];
+                        rightCellY = allowedPath[i][1]; 
+                    }
+            }
+            if (!leftCellX == 0) {
+                newShapeX = leftCellX;
+                newShapeY = leftCellY;
+                newShapeW += 32;
+            }
+            else if (leftCellX == 0) {
+                newShapeX = x;
+                newShapeY = y;
+            }
+            if (!rightCellX == 0) {
+                newShapeW += 32;
+            }
+            document.getElementById("bool2").innerHTML = "X-Led Shape: X: " + newShapeX + " Y: " + newShapeY + " W: " + newShapeW;
+            go = withinBounds(newShapeX, newShapeY, newShapeW, deltaX, deltaY);
+            withinPath = go;
+            return go;
+
+        }
+
+        function playerPathY(x, y, deltaX, deltaY) {
+            var upCellX = 0;
+            var upCellY = 0;
+            var downCellX = 0;
+            var downCellY = 0;
+            var newShapeX = 0;
+            var newShapeY = 0;
+            var newShapeH = 32;
+            var go = false;
+            for (let i = 0; i < allowedPath.length; i++) {
+                if (x == allowedPath[i][0] &&
+                    y == allowedPath[i][1] + 32) {
+                        upCellX = allowedPath[i][0];
+                        upCellY = allowedPath[i][1];
+                    }
+                if (x == allowedPath[i][0] &&
+                    y + 32 == allowedPath[i][1]) {
+                        downCellX = allowedPath[i][0];
+                        downCellY = allowedPath[i][1];
+                    }
+            }
+            if (!upCellX == 0) {
+                newShapeX = upCellX;
+                newShapeY = upCellY;
+                newShapeH += 32;
+            }
+            if (upCellX == 0) {
+                newShapeX = x;
+                newShapeY = y;
+            }
+            if (!downCellX == 0) {
+                newShapeH += 32;
+            }
+            document.getElementById("bool3").innerHTML = "Y-Led shape: X: " + newShapeX + " Y: " + newShapeY + " H: " + newShapeH;
+            go = withinBounds(newShapeX, newShapeY, newShapeH, deltaX, deltaY);
+            withinPath = go;
+            return go;
+
+        }
+
+        function withinBounds(x, y, wh, deltaX, deltaY) {
             pClipX = playerX + 2;
             pClipY = playerY + 11;
             playerW = 24;
-            playerH = 24;
-            for (let i = 0; i < allowedPath.length; i++) {
-                if (pClipX > allowedPath[i][0] &&
-                    pClipX + playerW < allowedPath[i][0] + 32 &&
-                    pClipY > allowedPath[i][1] &&
-                    pClipY + playerH < allowedPath[i][1] + 32) {
-                    return true;
-                }
-
-            }
+            playerH = 30;
+            if (pClipX + deltaX > x &&
+                pClipX + playerW + deltaX < x + wh &&
+                pClipY + deltaY > y &&
+                pClipY + playerH + deltaY < y + wh) {
+                return true;
+            } else
+                return false;
         }
 
         function checkNeighbour(charX, charY) {
