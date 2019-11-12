@@ -27,6 +27,8 @@
     position: absolute;
     top: 31px;
     left: 341px;
+    cursor: pointer;
+    z-index: 99;
 }
 
 canvas {

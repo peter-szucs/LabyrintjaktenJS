@@ -10,10 +10,10 @@
     <img id="logga" src="Logga.png">
     <img id="healthimg" src="Health.png">
     <img id="healthbar" src="Healthbar.png">
-    <img id="cog" src="SettingsCog.png">
+    <img id="cog" src="SettingsCog.png" onclick="pauseToggle()">
     <canvas id="bgCanvas" width="352" height="576"></canvas>
     <canvas id="pcCanvas" width="352" height="576"></canvas>
-    <canvas id="wallCanvas" width="352" height="455"></canvas>
+    <canvas id="overlayCanvas" width="352" height="576"></canvas>
     <input type="button" id="upButton" class="button" onmousedown="playerUp=true" onmouseup="playerUp=false" value="Upp">
     <input type="button" id="leftButton" class="button" onmousedown="playerLeft=true" onmouseup="playerLeft=false" value=" V ">
     <input type="button" id="rightButton" class="button" onmousedown="playerRight=true" onmouseup="playerRight=false" value=" H ">
@@ -25,14 +25,15 @@
         <p id="bool5"></p>
     </div>
     <script>
+        let paused = false;
         let loop = true;
         let health = 3;
-        let wallCanvas = document.getElementById('wallCanvas');
+        let overlayCanvas = document.getElementById('overlayCanvas');
         let pcCanvas = document.getElementById('pcCanvas');
         let bgCanvas = document.getElementById('bgCanvas');
-        let ctxWalls = wallCanvas.getContext('2d');
         let ctxPc = pcCanvas.getContext('2d');
         let ctxBg = bgCanvas.getContext('2d');
+        let ctxO = overlayCanvas.getContext('2d');
         let walls = [];
         let allowedPath = [];
         let gameTiles = 32;
@@ -59,7 +60,7 @@
         let tileSheet = new Image();
         let playerChar = new Image();
         let monsterChar1 = new Image();
-
+        
         tileSheet.src = "Tilesheet.png";
         playerChar.src = 'PCTilesheet.png';
         monsterChar1.src = 'Monster1TileSheet.png'
@@ -67,9 +68,9 @@
         tileSheet.onload = function() {
             draw();
         }
-        playerChar.onload = function() {
-            ctxPc.drawImage(playerChar, 100, 68, 32, 41);
-        }
+        // playerChar.onload = function() {
+        //     ctxPc.drawImage(playerChar, 100, 68, 32, 41);
+        // }
 
         function draw() {
             var posX = 0;
@@ -135,9 +136,59 @@
         let monsterStart = true;
         let monsterEnd = false;
 
-        console.log(walls);
-        console.log(allowedPath);
+        var currentGameState = startGame;
+        window.requestAnimationFrame(mainLoop);
+        
 
+        var bX = 40;
+        var bY = 80;
+        var bW = 100;
+        var bH = 50;
+
+        function startGame() {
+            ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
+            ctxO.fillStyle = "black";
+            ctxO.globalAlpha = 0.5;
+            ctxO.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            ctxO.font = "30px Arial white";
+            ctxO.fillStyle = "white";
+            ctxO.globalAlpha = 1;
+            ctxO.fillText("Hello!!", 20, 50);
+            ctxO.fillStyle = "red";
+            ctxO.fillRect(bX, bY, bW, bH);
+            overlayCanvas.addEventListener('click', function(event) {
+                if (
+                    event.x > bX &&
+                    event.x < bX + bW &&
+                    event.y > bY &&
+                    event.y < bY + bH 
+                ) { //ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                    // currentGamestate = gameLoop; 
+                    alert('Button was clicked');
+                }
+            });
+            // window.addEventListener("click", clickOnCanvas) 
+            //ctxO.globalAlpha = 1;
+            
+            // if (overlayCanvas.onclick) {
+            //     ctxO.globalAlpha = 0;
+            //     currentGameState = gameLoop;
+            // }
+            //IF trycker på knappen -> starta spel
+        }
+        function clickOnCanvas() {
+            ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
+            currentGamestate = gameLoop;
+        }
+        function pause() {
+            // ctxO.font = "30px Arial";
+            // ctxO.filltext("Paused");
+            if (paused) {
+                paused = false;
+                currentGameState = gameLoop;
+            }
+        }
+        
         function gameLoop() {
             ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
             let hasMoved = false;
@@ -191,19 +242,20 @@
             }
             drawPlayer(animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
             drawMonster(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY)
-            window.requestAnimationFrame(gameLoop);
-            console.log(playerX, playerY);
-
-            //console.log(charBlockPos(playerX, playerY));
-            //console.log(moveUp, moveDown, moveLeft, moveRight)
-            //console.log(debugArray)
-            //console.log(clippingPosX, clippingPosY);
-            //document.getElementById("bool2").innerHTML = playerCollision;
-            document.getElementById("bool4").innerHTML = "innanför: " + withinPath;
-            //document.getElementById("bool4").innerHTML = "vilken cell: " + playerCell;
-
+            if (paused) {
+                paused = false;
+                currentGameState = pause;
+            }
+            //window.requestAnimationFrame(gameLoop);
         }
-        gameLoop();
+
+        function mainLoop() {
+            document.getElementById("bool2").innerHTML = currentGameState;
+            currentGameState();
+            window.requestAnimationFrame(mainLoop);
+        }
+        //gameLoop();
+        
 
         function moveCharacter(deltaX, deltaY, direction) {
             var clippingPosY = playerY + 12;
@@ -370,6 +422,18 @@
                 return true;
             } else
                 return false;
+        }
+        function pauseToggle() {
+            if (!paused) {
+                paused = true;
+            }
+            else if (paused) {
+                paused = false;
+            }
+            document.getElementById("bool4").innerHTML = paused;
+        }
+        function test() {
+            document.getElementById("bool4").innerHTML = "Trycka !!!"
         }
     </script>
 </body>
