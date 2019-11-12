@@ -422,6 +422,22 @@
             }
         }
 
+        function withinBounds() {
+            pClipX = playerX + 2;
+            pClipY = playerY + 11;
+            playerW = 24;
+            playerH = 24;
+            for (let i = 0; i < allowedPath.length; i++) {
+                if (pClipX > allowedPath[i][0] &&
+                    pClipX + playerW < allowedPath[i][0] + 32 &&
+                    pClipY > allowedPath[i][1] &&
+                    pClipY + playerH < allowedPath[i][1] + 32) {
+                    return true;
+                }
+
+            }
+        }
+
         function checkNeighbour(charX, charY) {
             for (let i = 0; i < walls.length; i++) {
                 if (charY + 41 == walls[i][1] &&
