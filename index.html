@@ -25,23 +25,18 @@
         <p id="bool5"></p>
     </div>
     <script>
-        //window.onload = function() {
-        var loop = true;
-        var health = 3;
-        var wallCanvas = document.getElementById('wallCanvas');
-        var pcCanvas = document.getElementById('pcCanvas');
-        var bgCanvas = document.getElementById('bgCanvas');
-        var ctxWalls = wallCanvas.getContext('2d');
-        var ctxPc = pcCanvas.getContext('2d');
-        var ctxBg = bgCanvas.getContext('2d');
-        var allowedPathX = [];
-        var allowedPathY = [];
-        var walls = [];
-        var allowedPath = [];
-        var gameTiles = 32;
-        var currentPlayerX = 1;
-        var currentPlayerY = 1;
-        var mapArray = [
+        let loop = true;
+        let health = 3;
+        let wallCanvas = document.getElementById('wallCanvas');
+        let pcCanvas = document.getElementById('pcCanvas');
+        let bgCanvas = document.getElementById('bgCanvas');
+        let ctxWalls = wallCanvas.getContext('2d');
+        let ctxPc = pcCanvas.getContext('2d');
+        let ctxBg = bgCanvas.getContext('2d');
+        let walls = [];
+        let allowedPath = [];
+        let gameTiles = 32;
+        let mapArray = [
             [5, 1, 9, 1, 1, 1, 1, 1, 1, 1, 6],
             [3, 0, 14, 0, 0, 0, 0, 0, 0, 0, 4],
             [3, 0, 14, 0, 16, 0, 26, 13, 13, 13, 12],
@@ -61,9 +56,9 @@
             [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4],
             [8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7]
         ];
-        var tileSheet = new Image();
-        var playerChar = new Image();
-        var monsterChar1 = new Image();
+        let tileSheet = new Image();
+        let playerChar = new Image();
+        let monsterChar1 = new Image();
 
         tileSheet.src = "Tilesheet.png";
         playerChar.src = 'PCTilesheet.png';
@@ -86,8 +81,6 @@
                     var sourceY = Math.floor(value / 6) * 32;
                     ctxBg.drawImage(tileSheet, sourceX, sourceY, 32, 32, posX, posY, 32, 32);
                     if (value == 0) {
-                        allowedPathX.push(posX);
-                        allowedPathY.push(posY);
                         allowedPath.push([posX, posY])
                     }
                     if (value != 0 && value > 12) {
@@ -124,8 +117,6 @@
         let playerDown = false;
         let playerLeft = false;
         let playerRight = false;
-        // var clippingPosY = playerY + 12;
-        // var clippingPosX = playerX + 2;
         let monster1StartX = 5 * gameTiles;
         let monster1EndX = (4 * gameTiles) + monster1StartX;
         let monsterPosX = 5 * gameTiles
@@ -136,15 +127,10 @@
         let monster1FrameCount = 0;
         let monster1CurrentLoopIndex = 0;
         const frameLimit = 12;
-        let currentBlockPos = 0;
-        var moveLeft = true;
-        var moveRight = true;
-        var moveUp = true;
-        var moveDown = true;
-        var playerCollision = false;
+        let playerCollision = false;
         
-        var playerCell = 0;
-        var  withinPath = true;
+        let playerCell = 0;
+        let  withinPath = true;
 
         let monsterStart = true;
         let monsterEnd = false;
@@ -156,7 +142,6 @@
             ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
             let hasMoved = false;
             whatPlayerCell();
-            checkNeighbour(playerX, playerY);
             if (playerUp == true) {
                 currentDirection = facingUp;
                 hasMoved = true;
@@ -223,63 +208,9 @@
         function moveCharacter(deltaX, deltaY, direction) {
             var clippingPosY = playerY + 12;
             var clippingPosX = playerX + 2;
-            // for (let i = 0; i < walls.length; i++) {
-                // if (clippingPosX + deltaX > walls[i][0] + 32 &&
-                //     clippingPosX + 28 + deltaX < walls[i][0] &&
-                //     clippingPosY + deltaY > walls[i][1] + 32 &&
-                //     clippingPosY + 32 + deltaY < walls[i][1]) {
-                //     playerX += deltaX;
-                //     playerY += deltaY;
-                // }
-                // if (playerX + deltaX > walls[i][0] &&
-                //     playerY + deltaY > walls[i][1] &&
-                //     playerX + deltaX > walls[i][0] + 32 &&
-                //     playerY + deltaY > walls[i][1] + 32) {
-                //     playerX += deltaX;
-                //     playerY += deltaY;
-                // }
-                // if (playerX + deltaX > walls[i][0] &&
-                //     playerX + 32 + deltaX < walls[i][0] &&
-                //     playerY > walls[i][1]) {
-                //     playerX += deltaX;
-                // }
-                // if (playerY + deltaY > walls[i][1] &&
-                //     playerY + 32 + deltaY < walls[i][1] &&
-                //     playerX > walls[i][0]) {
-
-                //     playerY += deltaY;
-                // }
-                // if (playerX + deltaX > walls[i][0] + 32 &&
-                //     playerX + 32 + deltaX < walls[i][0] &&
-                //     playerY + deltaY > walls[i][1] + 32 &&
-                //     playerY + 32 + deltaY < walls[i][1]) {
-                //     playerX += deltaX;
-                //     playerY += deltaY;
-                // }
-
-            // }
-            // if (charBlockPos(playerX, playerY)) {
-            //     playerX += deltaX;
-            // }
-            // if (charBlockPos(playerX, playerY)) {
-            //     playerY += deltaY;
-            // }
-
-            // if (playerX + deltaX > 32 && playerX + 32 + deltaX < pcCanvas.width - 32) {
-            //     //if (playerX + deltaX >)
-            //     playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0);
-            //     playerX += deltaX;
-            // }
-            // if (playerY + deltaY > 0 && playerY + 32 + deltaY < pcCanvas.height - 32) {
-            //     playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY);
-            //     playerY += deltaY;
-            // }
-
             if (deltaX == -1) {
                 if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-
                     playerX += deltaX
-
                 }
             } else if (deltaX == 1) {
                 if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
@@ -295,57 +226,8 @@
                     playerY += deltaY
                 }
             }
-
-            // if (deltaX == -1) {
-            //     if (!playerCollision) {
-
-            //         playerX += deltaX
-
-            //     } else if (playerCollision) {
-            //         playerX += 1;
-            //         playerCollision = false;
-            //     }
-            // } else if (deltaX == 1) {
-            //     if (!playerCollision) {
-            //         playerX += deltaX
-            //     } else if (playerCollision) {
-            //         //playerX += -1;
-            //         playerCollision = false;
-            //     }
-            // }
-            // if (deltaY == -1) {
-            //     if (!playerCollision) {
-            //         playerY += deltaY
-            //     } else if (playerCollision) {
-            //         //playerY += 1;
-            //         playerCollision = false;
-            //     }
-            // } else if (deltaY == 1) {
-            //     if (!playerCollision) {
-            //         playerY += deltaY
-            //     } else if (playerCollision) {
-            //         //playerY += -1;
-            //         playerCollision = false;
-            //     }
-            // }
-
-            // if (moveDown) {
-            //     playerY += deltaY;
-            // } else if (moveUp) {
-            //     playerY += deltaY;
-            // }
-            // if (moveLeft) {
-            //     playerX += deltaX;
-            // } else if (moveRight) {
-            //     playerX += deltaX;
-            // } else {
-            //     playerY += 0;
-            //     playerX += 0;
-            // }
             currentDirection = direction;
-
         }
-
 
         function monster1Walk(monsterStart, monsterEnd) {
 
@@ -373,47 +255,6 @@
                 }
             }
         }
-
-        function charBlockPos2(charX, charY) {
-
-            for (let i = 0; i < allowedPath.length; i++) {
-                clipPosY = charY + 9;
-                if (charX < allowedPath[i][0] + 32 &&
-                    playerX + 32 <= allowedPath[i][0] &&
-                    clipPosY < allowedPath[i][1] + 32 &&
-                    clipPosY + 32 > allowedPath[i][1]) {
-                    return true;
-                }
-
-            }
-        }
-
-        function charBlockPos(charX, charY) {
-
-            for (let i = 0; i < allowedPath.length; i++) {
-                clipPosY = charY + 9;
-                if (charX >= allowedPath[i][0] &&
-                    charX <= allowedPath[i][0] + 32 &&
-                    clipPosY >= allowedPath[i][1] &&
-                    clipPosY <= allowedPath[i][1] + 32) {
-                    return true;
-                }
-                return false;
-            }
-        }
-
-        function moveCheck(deltaX, deltaY) {
-            if (charBlockPos((playerX + deltaX), playerY)) {
-                return true;
-            }
-        }
-
-        function moveCheckY(deltaX, deltaY) {
-            if (charBlockPos((playerX, playerY + deltaY))) {
-                return true;
-            }
-        }
-
         function collision() {
             for (let i = 0; i < walls.length; i++) {
                 if (walls[i][0] < playerX + 32 &&
@@ -530,59 +371,6 @@
             } else
                 return false;
         }
-
-        function checkNeighbour(charX, charY) {
-            for (let i = 0; i < walls.length; i++) {
-                if (charY + 41 == walls[i][1] &&
-                    charX == walls[i][0]) {
-                    moveDown = false;
-                } else {
-                    moveDown = true;
-                }
-                if (charY - 9 == walls[i][1] &&
-                    charX == walls[i][0]) {
-                    moveUp = false;
-                } else {
-                    moveUp = true;
-                }
-                if (charX - 1 == walls[i][0] &&
-                    charY == walls[i][1]) {
-                    moveLeft = false;
-                } else {
-                    moveLeft = true;
-                }
-                if (charX + 32 == walls[i][0] &&
-                    charY == walls[i][1]) {
-                    moveRight = false;
-                } else {
-                    moveRight = true;
-                }
-
-                // if (charX == allowedPath[i][0] - 32 &&
-                //     charY == allowedPath[i][1]) {
-                //     moveLeft = true;
-                // }
-                // if (charX == allowedPath[i][0] + 32 &&
-                //     charY == allowedPath[i][1]) {
-                //     moveRight = true;
-                // }
-                // if (charY == allowedPath[i][1] + 41 &&
-                //     charX == allowedPath[i][0]) {
-                //     moveDown = true;
-                // }
-                // if (charY == allowedPath[i][1] - 32 &&
-                //     charX == allowedPath[i][0]) {
-                //     moveUp = true;
-                // } else {
-                //     moveUp = false;
-                //     moveDown = false;
-                //     moveLeft = false;
-                //     moveRight = false;
-                // }
-
-            }
-        }
-        //}
     </script>
 </body>
 
