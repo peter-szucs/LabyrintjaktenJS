@@ -5,6 +5,7 @@ body {
     background-repeat: no-repeat;
     margin: 0;
 }
+
 #bool {
     position: absolute;
     top: 40px;
@@ -24,44 +25,47 @@ body {
     left: 11px;
 }
 
-
-#healthbar {
+#healthbar0 {
     position: absolute;
     top: 37px;
     left: 35px;
 }
+
 #healthbar1 {
     position: absolute;
     top: 37px;
     left: 55px;
 }
+
 #healthbar2 {
     position: absolute;
     top: 37px;
     left: 75px;
 }
+
 #cog {
     position: absolute;
     top: 31px;
     left: 341px;
     cursor: pointer;
-
 }
+
 #level {
     position: absolute;
     top: 26px;
     left: 150px;
 }
 
-
 #overlayCanvas {
     z-index: 10;
     position: absolute;
 }
+
 #middleCanvas {
     z-index: 4;
     position: absolute;
 }
+
 #effectCanvas {
     z-index: 5;
     position: absolute;
@@ -74,6 +78,7 @@ body {
     top: 59px;
     left: 11px;
 }
+
 #monsterCanvas {
     z-index: 3;
     position: absolute;
@@ -100,7 +105,6 @@ body {
     border-radius: 10px;
     width: 62px;
     height: 62px;
-
 }
 
 #upButton {

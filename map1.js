@@ -19,6 +19,8 @@ const mapArray = [
     [8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7]
 ];
 const gameTiles = 32;
+const playerStartX = 32;
+const playerStartY = 23;
 const monsterMoveSpeed = 0.5;
 const monster2MoveSpeed = 0.6;
 const monster3MoveSpeed = 0.7;
