@@ -30,12 +30,12 @@ body {
     top: 37px;
     left: 35px;
 }
-#healthbar2 {
+#healthbar1 {
     position: absolute;
     top: 37px;
     left: 55px;
 }
-#healthbar3 {
+#healthbar2 {
     position: absolute;
     top: 37px;
     left: 75px;
@@ -47,7 +47,11 @@ body {
     cursor: pointer;
 
 }
-
+#level {
+    position: absolute;
+    top: 26px;
+    left: 150px;
+}
 
 
 #overlayCanvas {

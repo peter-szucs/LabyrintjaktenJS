@@ -10,8 +10,9 @@
     <img id="logga" src="Logga.png">
     <img id="healthimg" src="Health.png">
     <img id="healthbar" src="Healthbar.png">
+    <img id="healthbar1" src="Healthbar.png">
     <img id="healthbar2" src="Healthbar.png">
-    <img id="healthbar3" src="Healthbar.png">
+    <img id="level" src="Level 1.png">
     <img id="cog" src="SettingsCog.png" onclick="pauseToggle()">
     <canvas id="bgCanvas" width="352" height="576"></canvas>
     <canvas id="pcCanvas" width="352" height="576"></canvas>
@@ -31,7 +32,7 @@
     <script>
         let paused = false;
         let loop = true;
-        let health = 3;
+        let playerHealth = 3;
         let overlayCanvas = document.getElementById('overlayCanvas');
         let middleCanvas = document.getElementById('middleCanvas');
         let effectCanvas = document.getElementById('effectCanvas');
@@ -70,18 +71,22 @@
         let playButton = new Image();
         let smoke1 = new Image();
         let smoke2 = new Image();
+        let vignette = new Image();
         let tileSheet = new Image();
         let playerChar = new Image();
         let monsterChar1 = new Image();
+        let level1 = new Image();
         
         startScreenBG.src = "startScreenBG.png";
-        startScreenLogo.src = "startScreenLogo.png"
-        playButton.src = "spelaButton.png"
-        smoke1.src = "smoke1.png"
-        smoke2.src = "smoke2.png"
+        startScreenLogo.src = "startScreenLogo.png";
+        playButton.src = "spelaButton.png";
+        smoke1.src = "smoke1.png";
+        smoke2.src = "smoke2.png";
+        vignette.src = "grunge-vignette.png";
         tileSheet.src = "Tilesheet.png";
         playerChar.src = 'PCTilesheet.png';
-        monsterChar1.src = 'Monster1TileSheet.png'
+        monsterChar1.src = 'Monster1TileSheet.png';
+        level1.src = "Level 1.png"
 
         tileSheet.onload = function() {
             draw();
@@ -167,13 +172,19 @@
         let smokeFrameTrigger = 0;
         let smoke2T = false;
 
+        let recentHit = false;
+        let hitTick = 0;
+
 
         function startGame() {
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
+            ctxE.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
             ctxM.drawImage(startScreenBG, 0, 0);
             ctxO.drawImage(startScreenLogo, 16, 87);
             ctxO.drawImage(playButton, 73, 609);
+            ctxE.globalAlpha = 0.3;
+            ctxE.drawImage(vignette, 0, 0);
             moveSmoke(-0.4);
             if (smokeFrameTrigger == 1500) {
                 smoke2T = true;
@@ -226,11 +237,6 @@
             currentGameState = gameLoop;
         }
 
-        function clickOnCanvas() {
-            ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-            ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
-            currentGamestate = gameLoop;
-        }
         function pause() {
             if (paused) {
                 paused = false;
@@ -240,8 +246,8 @@
         
         function gameLoop() {
             ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
+            ctxE.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
             let hasMoved = false;
-            document.getElementById("bool5").innerHTML = playerCell;
             whatPlayerCell();
             if (playerUp == true) {
                 currentDirection = facingUp;
@@ -292,22 +298,44 @@
             if (!hasMoved) {
                 currentLoopIndex = 0;
             }
+            collision(monsterPosX, monsterPosY);
+            ctxE.globalAlpha = 0.3;
+            ctxE.drawImage(vignette, 0, 0);
             drawPlayer(animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
             drawMonster(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY)
+            document.getElementById("bool5").innerHTML = playerCollision;
+            if (hitTick >= 70) {
+                recentHit = false;
+                hitTick = 0;
+            }
+            if (!recentHit) {
+                if (playerCollision) {
+                        monsterHit();
+                }
+            }
+            else if (recentHit) {
+                hitTick++;
+            }
             if (paused) {
                 paused = false;
                 currentGameState = pause;
             }
-            //window.requestAnimationFrame(gameLoop);
         }
 
         function mainLoop() {
-            //document.getElementById("bool2").innerHTML = currentGameState;
             currentGameState();
             window.requestAnimationFrame(mainLoop);
         }
-        //gameLoop();
-        
+        function monsterHit() {
+            if (playerHealth == 1) {
+                //GAME OVER -> Restart?
+            }
+            playerHealth -= 1;
+            var healthTick = document.getElementById('healthbar' + playerHealth)
+            healthTick.parentNode.removeChild(healthTick);
+            recentHit = true;
+            
+        }
 
         function moveCharacter(deltaX, deltaY, direction) {
             var clippingPosY = playerY + 12;
@@ -346,6 +374,7 @@
                     }
                 }
                 monsterPosX += monsterMoveSpeed;
+
             } else if (monsterEnd) {
                 monsterPosX -= monsterMoveSpeed;
                 monster1CurrentDirection = monster1FaceLeft;
@@ -359,15 +388,15 @@
                 }
             }
         }
-        function collision() {
-            for (let i = 0; i < walls.length; i++) {
-                if (walls[i][0] < playerX + 32 &&
-                    walls[i][0] + 32 > playerX &&
-                    walls[i][1] < playerY + 9 + 32 &&
-                    walls[i][1] + 32 > playerY + 9) {
-                    playerCollision = true;
-                }
-
+        function collision(x, y) {
+            if (x < playerX + 32 &&
+                x + 32 > playerX &&
+                y + 9 < playerY + 9 + 30 &&
+                y + 9 + 32 > playerY + 9) {
+                playerCollision = true;
+            }
+            else {
+                playerCollision = false;
             }
         }
         function whatPlayerCell() {
@@ -380,29 +409,6 @@
                     }
             }
         }
-
-        // function whatPlayerCell() {
-        //     for (let i = 0; i < allowedPath.length; i++) {
-        //         if (playerX + 2 > allowedPath[i][0] &&
-        //             playerX + 2 < allowedPath[i][0] + 32 &&
-        //             playerY + 40 >= allowedPath[i][1] &&
-        //             playerY + 40 <= allowedPath[i][1] + 32) {
-        //                 playerCell = i;
-        //             }
-        //     }
-        // }
-
-        // function whatPlayerCellRight() {
-        //     for (let i = 0; i < allowedPath.length; i++) {
-        //         if (playerX + 26 > allowedPath[i][0] &&
-        //             playerX + 26 < allowedPath[i][0] + 32 &&
-        //             playerY + 40 >= allowedPath[i][1] &&
-        //             playerY + 40 <= allowedPath[i][1] + 32) {
-        //                 playerCell = i;
-        //             }
-        //     }
-        // }
-
         function playerPathX(x, y, deltaX, deltaY) {
             var leftCellX = 0;
             var leftCellY = 0;
@@ -504,9 +510,6 @@
                 paused = false;
             }
             document.getElementById("bool4").innerHTML = paused;
-        }
-        function test() {
-            document.getElementById("bool4").innerHTML = "Trycka !!!"
         }
     </script>
 </body>
