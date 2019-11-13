@@ -14,6 +14,7 @@
     <canvas id="bgCanvas" width="352" height="576"></canvas>
     <canvas id="pcCanvas" width="352" height="576"></canvas>
     <canvas id="middleCanvas" width="375" height="812"></canvas>
+    <canvas id="effectCanvas" width="375" height="812"></canvas>
     <canvas id="overlayCanvas" width="375" height="812"></canvas>
     <input type="button" id="upButton" class="button" onmousedown="playerUp=true" onmouseup="playerUp=false" value="Upp">
     <input type="button" id="leftButton" class="button" onmousedown="playerLeft=true" onmouseup="playerLeft=false" value=" V ">
@@ -31,11 +32,13 @@
         let health = 3;
         let overlayCanvas = document.getElementById('overlayCanvas');
         let middleCanvas = document.getElementById('middleCanvas');
+        let effectCanvas = document.getElementById('effectCanvas');
         let pcCanvas = document.getElementById('pcCanvas');
         let bgCanvas = document.getElementById('bgCanvas');
         let ctxPc = pcCanvas.getContext('2d');
         let ctxBg = bgCanvas.getContext('2d');
         let ctxM = middleCanvas.getContext('2d');
+        let ctxE = effectCanvas.getContext('2d');
         let ctxO = overlayCanvas.getContext('2d');
         let walls = [];
         let allowedPath = [];
@@ -63,7 +66,8 @@
         let startScreenBG = new Image();
         let startScreenLogo = new Image();
         let playButton = new Image();
-        let smoke = new Image();
+        let smoke1 = new Image();
+        let smoke2 = new Image();
         let tileSheet = new Image();
         let playerChar = new Image();
         let monsterChar1 = new Image();
@@ -71,7 +75,8 @@
         startScreenBG.src = "startScreenBG.png";
         startScreenLogo.src = "startScreenLogo.png"
         playButton.src = "spelaButton.png"
-        smoke.src = "smoke2_8.png"
+        smoke1.src = "smoke1.png"
+        smoke2.src = "smoke2.png"
         tileSheet.src = "Tilesheet.png";
         playerChar.src = 'PCTilesheet.png';
         monsterChar1.src = 'Monster1TileSheet.png'
@@ -148,16 +153,18 @@
         let monsterStart = true;
         let monsterEnd = false;
 
-        let smokeX = 0;
+        let smoke1X = 0;
+        let smoke2X = 0;
 
-        var currentGameState = startGame;
+        let currentGameState = startGame;
         window.requestAnimationFrame(mainLoop);
-        
 
-        var bX = 40;
-        var bY = 80;
-        var bW = 100;
-        var bH = 50;
+        let smokeReset = false;
+        let smokeFrame1 = 0;
+        let smokeFrame2 = 0;
+        let smokeFrameTrigger = 0;
+        let smoke2T = false;
+
 
         function startGame() {
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
@@ -165,29 +172,54 @@
             ctxM.drawImage(startScreenBG, 0, 0);
             ctxO.drawImage(startScreenLogo, 16, 87);
             ctxO.drawImage(playButton, 73, 609);
-            moveSmoke(-0.2);
+            moveSmoke(-0.4);
+            if (smokeFrameTrigger == 1500) {
+                smoke2T = true;
+            }
+            if (smoke2T) {
+                moveSmoke2(-0.4);
+            }
             overlayCanvas.addEventListener('click', function(event) {
                 if (
-                    event.x > 0 &&
-                    event.x < overlayCanvas.width &&
-                    event.y > 0 &&
-                    event.y < overlayCanvas.height
+                    event.x > 73 &&
+                    event.x < 229 &&
+                    event.y > 609 &&
+                    event.y < 114
                 ) { 
                     afterStart();
                 }
             });
         }
+        function moveSmoke2(deltaX) {
+            smoke2X += deltaX;
+            drawSmoke2(smoke2X, 0);
+            smokeFrame2++;
+            if (smokeFrame2 == 3000) {
+                smoke2X = 100;
+                smokeFrame2 = 0;
+            }
+        }
         function moveSmoke(deltaX) {
-            smokeX += deltaX;
-            drawSmoke(smokeX, 0);
+            smoke1X += deltaX;
+            drawSmoke(smoke1X, 0);
+            smokeFrame1++;
+            smokeFrameTrigger++;
+            if (smokeFrame1 == 3000) {
+                smoke1X = 0;
+                smokeFrame1 = 0;
+            }
         }
         function drawSmoke(canvasX, canvasY) {
-            ctxM.drawImage(smoke, canvasX, canvasY)
+            ctxM.drawImage(smoke1, canvasX, canvasY)
+        }
+        function drawSmoke2(canvasX, canvasY) {
+            ctxM.drawImage(smoke2, canvasX, canvasY)
         }
 
         function afterStart() {
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
+            ctxE.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
             document.getElementById("overlayCanvas").style.pointerEvents = "none";
             document.getElementById("middleCanvas").style.pointerEvents = "none";
             currentGameState = gameLoop;
@@ -199,8 +231,6 @@
             currentGamestate = gameLoop;
         }
         function pause() {
-            // ctxO.font = "30px Arial";
-            // ctxO.filltext("Paused");
             if (paused) {
                 paused = false;
                 currentGameState = gameLoop;

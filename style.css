@@ -48,6 +48,11 @@ body {
     z-index: 3;
     position: absolute;
 }
+#effectCanvas {
+    z-index: 4;
+    position: absolute;
+    pointer-events: none;
+}
 
 #pcCanvas {
     z-index: 2;
