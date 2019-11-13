@@ -29,6 +29,9 @@
         <p id="bool4"></p>
         <p id="bool5"></p>
     </div>
+    <div id="scriptLinkPlaceholder">
+        <script src="map1.js" id="scriptLink" type="text/javascript"></script>
+    </div>
     <script>
         let paused = false;
         let loop = true;
@@ -45,27 +48,7 @@
         let ctxO = overlayCanvas.getContext('2d');
         let walls = [];
         let allowedPath = [];
-        let gameTiles = 32;
-        let mapArray = [
-            [5, 1, 9, 1, 1, 1, 1, 1, 1, 1, 6],
-            [3, 0, 14, 0, 0, 0, 0, 0, 0, 0, 4],
-            [3, 0, 14, 0, 16, 0, 26, 13, 13, 13, 12],
-            [3, 0, 15, 0, 14, 0, 14, 0, 0, 0, 4],
-            [3, 0, 0, 0, 14, 0, 15, 0, 18, 13, 12],
-            [11, 13, 13, 13, 24, 0, 0, 0, 0, 0, 4],
-            [3, 0, 0, 0, 0, 0, 26, 13, 25, 0, 4],
-            [3, 0, 26, 13, 13, 13, 24, 0, 14, 0, 4],
-            [3, 0, 15, 0, 0, 0, 0, 0, 23, 13, 12],
-            [3, 0, 0, 0, 16, 0, 16, 0, 0, 0, 4],
-            [11, 13, 13, 13, 21, 0, 23, 13, 13, 13, 12],
-            [3, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0],
-            [3, 0, 16, 0, 14, 0, 18, 13, 25, 0, 4],
-            [3, 0, 14, 0, 15, 0, 0, 0, 14, 0, 4],
-            [3, 0, 14, 0, 0, 0, 16, 0, 14, 0, 4],
-            [3, 0, 23, 13, 13, 13, 20, 13, 24, 0, 4],
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4],
-            [8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7]
-        ];
+        //let gameTiles = 32;
         let startScreenBG = new Image();
         let startScreenLogo = new Image();
         let playButton = new Image();
@@ -91,10 +74,6 @@
         tileSheet.onload = function() {
             draw();
         }
-        // playerChar.onload = function() {
-        //     ctxPc.drawImage(playerChar, 100, 68, 32, 41);
-        // }
-
         function draw() {
             var posX = 0;
             var posY = 0;
@@ -141,8 +120,6 @@
         let playerDown = false;
         let playerLeft = false;
         let playerRight = false;
-        let monster1StartX = 5 * gameTiles;
-        let monster1EndX = (4 * gameTiles) + monster1StartX;
         let monsterPosX = 5 * gameTiles
         let monsterPosY = (5 * gameTiles) - 12;
         const monster1FaceRight = 0;
