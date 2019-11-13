@@ -17,7 +17,7 @@
     <img id="cog" src="SettingsCog.png" onclick="pauseToggle()">
     <canvas id="bgCanvas" width="352" height="576"></canvas>
     <canvas id="pcCanvas" width="352" height="576"></canvas>
-    <!-- <canvas id="monsterCanvas" width="352" height="576"></canvas> -->
+    <canvas id="shadowCanvas" width="352" height="576"></canvas>
     <canvas id="middleCanvas" width="375" height="812"></canvas>
     <canvas id="effectCanvas" width="375" height="812"></canvas>
     <canvas id="overlayCanvas" width="375" height="812"></canvas>
@@ -50,10 +50,10 @@
         let middleCanvas = document.getElementById('middleCanvas');
         let effectCanvas = document.getElementById('effectCanvas');
         let pcCanvas = document.getElementById('pcCanvas');
-        // let monsterCanvas = document.getElementById('monsterCanvas');
+        let shadowCanvas = document.getElementById('shadowCanvas');
         let bgCanvas = document.getElementById('bgCanvas');
         let ctxPc = pcCanvas.getContext('2d');
-        // let ctxMc = monsterCanvas.getContext('2d');
+        let ctxShadow = shadowCanvas.getContext('2d');
         let ctxBg = bgCanvas.getContext('2d');
         let ctxM = middleCanvas.getContext('2d');
         let ctxE = effectCanvas.getContext('2d');
@@ -255,7 +255,7 @@
         function afterStart() {
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
-            ctxE.clearRect(0, 0, effectCanvas.width, middleCanvas.height);
+            ctxE.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
             document.getElementById("overlayCanvas").style.pointerEvents = "none";
             document.getElementById("middleCanvas").style.pointerEvents = "none";
             currentGameState = gameLoop;
@@ -271,6 +271,7 @@
         function gameLoop() {
             ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
             ctxE.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
+            ctxShadow.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
             let hasMoved = false;
             whatPlayerCell();
             if (playerUp == true) {
@@ -353,8 +354,6 @@
             }
         }
 
-
-
         function monsterHit() {
             if (playerHealth == 1) {
                 playerHealth -= 1;
@@ -368,26 +367,26 @@
         }
 
         function moveCharacter(deltaX, deltaY, direction) {
-            // if (deltaX == -1) {
-            //     if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-            //         playerX += deltaX
-            //     }
-            // } else if (deltaX == 1) {
-            //     if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-            //         playerX += deltaX
-            //     }
-            // }
-            // if (deltaY == -1) {
-            //     if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-            //         playerY += deltaY
-            //     }
-            // } else if (deltaY == 1) {
-            //     if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-            //         playerY += deltaY
-            //     }
-            // }
-            playerX += deltaX;
-            playerY += deltaY;
+            if (deltaX == -1) {
+                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
+                    playerX += deltaX
+                }
+            } else if (deltaX == 1) {
+                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
+                    playerX += deltaX
+                }
+            }
+            if (deltaY == -1) {
+                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
+                    playerY += deltaY
+                }
+            } else if (deltaY == 1) {
+                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
+                    playerY += deltaY
+                }
+            }
+            // playerX += deltaX;
+            // playerY += deltaY;
             currentDirection = direction;
         }
 
@@ -597,6 +596,7 @@
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
             ctxE.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
+            ctxM.globalAlpha = 1.0;
             ctxM.drawImage(startScreenBG, 0, 0);
             ctxO.drawImage(startScreenLogo, 16, 87);
             ctxO.drawImage(playButton, 73, 609);
@@ -637,6 +637,7 @@
                 addHealthBars();
                 document.getElementById("overlayCanvas").style.pointerEvents = "none";
                 document.getElementById("middleCanvas").style.pointerEvents = "none";
+                alphaCounter = 0;
                 currentGameState = gameLoop;
             }
         }
@@ -663,7 +664,8 @@
         function winLevelChoice() {
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
-            ctxE.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
+            ctxE.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
+            ctxM.globalAlpha = 1.0;
             ctxM.drawImage(startScreenBG, 0, 0);
             ctxO.drawImage(startScreenLogo, 16, 87);
             ctxO.drawImage(playButton, 73, 609);
