@@ -13,7 +13,8 @@
     <img id="cog" src="SettingsCog.png" onclick="pauseToggle()">
     <canvas id="bgCanvas" width="352" height="576"></canvas>
     <canvas id="pcCanvas" width="352" height="576"></canvas>
-    <canvas id="overlayCanvas" width="352" height="576"></canvas>
+    <canvas id="middleCanvas" width="375" height="812"></canvas>
+    <canvas id="overlayCanvas" width="375" height="812"></canvas>
     <input type="button" id="upButton" class="button" onmousedown="playerUp=true" onmouseup="playerUp=false" value="Upp">
     <input type="button" id="leftButton" class="button" onmousedown="playerLeft=true" onmouseup="playerLeft=false" value=" V ">
     <input type="button" id="rightButton" class="button" onmousedown="playerRight=true" onmouseup="playerRight=false" value=" H ">
@@ -29,10 +30,12 @@
         let loop = true;
         let health = 3;
         let overlayCanvas = document.getElementById('overlayCanvas');
+        let middleCanvas = document.getElementById('middleCanvas');
         let pcCanvas = document.getElementById('pcCanvas');
         let bgCanvas = document.getElementById('bgCanvas');
         let ctxPc = pcCanvas.getContext('2d');
         let ctxBg = bgCanvas.getContext('2d');
+        let ctxM = middleCanvas.getContext('2d');
         let ctxO = overlayCanvas.getContext('2d');
         let walls = [];
         let allowedPath = [];
@@ -57,10 +60,18 @@
             [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4],
             [8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7]
         ];
+        let startScreenBG = new Image();
+        let startScreenLogo = new Image();
+        let playButton = new Image();
+        let smoke = new Image();
         let tileSheet = new Image();
         let playerChar = new Image();
         let monsterChar1 = new Image();
         
+        startScreenBG.src = "startScreenBG.png";
+        startScreenLogo.src = "startScreenLogo.png"
+        playButton.src = "spelaButton.png"
+        smoke.src = "smoke2_8.png"
         tileSheet.src = "Tilesheet.png";
         playerChar.src = 'PCTilesheet.png';
         monsterChar1.src = 'Monster1TileSheet.png'
@@ -137,6 +148,8 @@
         let monsterStart = true;
         let monsterEnd = false;
 
+        let smokeX = 0;
+
         var currentGameState = startGame;
         window.requestAnimationFrame(mainLoop);
         
@@ -147,16 +160,12 @@
         var bH = 50;
 
         function startGame() {
-            ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
-            ctxO.fillStyle = "black";
-            ctxO.globalAlpha = 0.5;
-            ctxO.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-            ctxO.font = "30px Arial white";
-            ctxO.fillStyle = "white";
-            ctxO.globalAlpha = 1;
-            ctxO.fillText("Hello!!", 20, 50);
-            ctxO.fillStyle = "red";
-            ctxO.fillRect(bX, bY, bW, bH);
+            ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
+            ctxM.drawImage(startScreenBG, 0, 0);
+            ctxO.drawImage(startScreenLogo, 16, 87);
+            ctxO.drawImage(playButton, 73, 609);
+            moveSmoke(-0.2);
             overlayCanvas.addEventListener('click', function(event) {
                 if (
                     event.x > 0 &&
@@ -168,14 +177,25 @@
                 }
             });
         }
+        function moveSmoke(deltaX) {
+            smokeX += deltaX;
+            drawSmoke(smokeX, 0);
+        }
+        function drawSmoke(canvasX, canvasY) {
+            ctxM.drawImage(smoke, canvasX, canvasY)
+        }
 
         function afterStart() {
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
+            document.getElementById("overlayCanvas").style.pointerEvents = "none";
+            document.getElementById("middleCanvas").style.pointerEvents = "none";
             currentGameState = gameLoop;
         }
 
         function clickOnCanvas() {
-            ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
+            ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
             currentGamestate = gameLoop;
         }
         function pause() {
@@ -301,7 +321,7 @@
                 monster1FrameCount++
                 if (monster1FrameCount >= frameLimit) {
                     monster1FrameCount = 0;
-                    monster1CurrentLoopIndex++;
+                    monster1CurrentLoopIndex++; 
                     if (monster1CurrentLoopIndex >= animationLoop.length) {
                         monster1CurrentLoopIndex = 0;
                     }
