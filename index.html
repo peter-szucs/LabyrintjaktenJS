@@ -140,7 +140,6 @@
         let monster3FrameCount = 0;
         let monster3CurrentLoopIndex = 0;
         const frameLimit = 12;
-        let playerCollision = false;
         
         let playerCell = 0;
         let lastDirection = true;
@@ -295,14 +294,11 @@
             if (!hasMoved) {
                 currentLoopIndex = 0;
             }
-            // collision(monsterPosX, monsterPosY);
-            // collision(monster3PosX, monster3PosY);
             ctxE.globalAlpha = 0.3;
             ctxE.drawImage(vignette, 0, 0);
             drawPlayer(animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
             drawMonster1(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY);
             drawMonster3(animationLoop[monster3CurrentLoopIndex], monster3CurrentDirection, monster3PosX, monster3PosY);
-            document.getElementById("bool4").innerHTML = playerCollision;
             if (hitTick >= 70) {
                 recentHit = false;
                 hitTick = 0;
