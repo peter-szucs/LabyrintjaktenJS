@@ -24,12 +24,22 @@ body {
     left: 11px;
 }
 
+
 #healthbar {
     position: absolute;
     top: 37px;
-    left: 33px;
+    left: 35px;
 }
-
+#healthbar2 {
+    position: absolute;
+    top: 37px;
+    left: 55px;
+}
+#healthbar3 {
+    position: absolute;
+    top: 37px;
+    left: 75px;
+}
 #cog {
     position: absolute;
     top: 31px;
