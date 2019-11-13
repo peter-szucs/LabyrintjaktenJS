@@ -16,6 +16,7 @@
     <img id="cog" src="SettingsCog.png" onclick="pauseToggle()">
     <canvas id="bgCanvas" width="352" height="576"></canvas>
     <canvas id="pcCanvas" width="352" height="576"></canvas>
+    <!-- <canvas id="monsterCanvas" width="352" height="576"></canvas> -->
     <canvas id="middleCanvas" width="375" height="812"></canvas>
     <canvas id="effectCanvas" width="375" height="812"></canvas>
     <canvas id="overlayCanvas" width="375" height="812"></canvas>
@@ -40,15 +41,16 @@
         let middleCanvas = document.getElementById('middleCanvas');
         let effectCanvas = document.getElementById('effectCanvas');
         let pcCanvas = document.getElementById('pcCanvas');
+        // let monsterCanvas = document.getElementById('monsterCanvas');
         let bgCanvas = document.getElementById('bgCanvas');
         let ctxPc = pcCanvas.getContext('2d');
+        // let ctxMc = monsterCanvas.getContext('2d');
         let ctxBg = bgCanvas.getContext('2d');
         let ctxM = middleCanvas.getContext('2d');
         let ctxE = effectCanvas.getContext('2d');
         let ctxO = overlayCanvas.getContext('2d');
         let walls = [];
         let allowedPath = [];
-        //let gameTiles = 32;
         let startScreenBG = new Image();
         let startScreenLogo = new Image();
         let playButton = new Image();
@@ -58,6 +60,7 @@
         let tileSheet = new Image();
         let playerChar = new Image();
         let monsterChar1 = new Image();
+        let monsterChar3 = new Image();
         let level1 = new Image();
         
         startScreenBG.src = "startScreenBG.png";
@@ -69,6 +72,7 @@
         tileSheet.src = "Tilesheet.png";
         playerChar.src = 'PCTilesheet.png';
         monsterChar1.src = 'Monster1TileSheet.png';
+        monsterChar3.src = "Monster3TileSheet.png";
         level1.src = "Level 1.png"
 
         tileSheet.onload = function() {
@@ -100,7 +104,10 @@
             ctxPc.drawImage(playerChar, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
         }
 
-        function drawMonster(frameX, frameY, canvasX, canvasY) {
+        function drawMonster1(frameX, frameY, canvasX, canvasY) {
+            ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
+        }
+        function drawMonster3(frameX, frameY, canvasX, canvasY) {
             ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
         }
         const animationLoop = [0, 1, 0, 2];
@@ -113,20 +120,25 @@
         let currentDirection = facingDown;
 
         const moveSpeed = 1;
-        const monsterMoveSpeed = 0.5;
+        
         let playerX = 32;
         let playerY = 23;
         let playerUp = false;
         let playerDown = false;
         let playerLeft = false;
         let playerRight = false;
-        let monsterPosX = 5 * gameTiles
-        let monsterPosY = (5 * gameTiles) - 12;
-        const monster1FaceRight = 0;
-        const monster1FaceLeft = 1;
-        let monster1CurrentDirection = monster1FaceRight;
+        let monsterPosX = monster1StartX;
+        let monsterPosY = monster1StartY;
+        let monster3PosX = monster3StartX;
+        let monster3PosY = monster3StartY;
+        const monsterFaceRight = 0;
+        const monsterFaceLeft = 1;
+        let monster1CurrentDirection = monsterFaceRight;
         let monster1FrameCount = 0;
         let monster1CurrentLoopIndex = 0;
+        let monster3CurrentDirection = monsterFaceRight;
+        let monster3FrameCount = 0;
+        let monster3CurrentLoopIndex = 0;
         const frameLimit = 12;
         let playerCollision = false;
         
@@ -136,6 +148,8 @@
 
         let monsterStart = true;
         let monsterEnd = false;
+        let monster3Start = true;
+        let monster3End = false;
 
         let smoke1X = 0;
         let smoke2X = 0;
@@ -230,26 +244,22 @@
                 currentDirection = facingUp;
                 lastDirection = true;
                 hasMoved = true;
-                collision();
                 moveCharacter(0, -moveSpeed, facingUp);
             } else if (playerDown == true) {
                 currentDirection = facingDown;
                 lastDirection = true;
                 hasMoved = true;
-                collision();
                 moveCharacter(0, moveSpeed, facingDown);
             }
             if (playerLeft == true) {
                 currentDirection = facingLeft;
                 lastDirection = true;
                 hasMoved = true;
-                collision();
                 moveCharacter(-moveSpeed, 0, facingLeft);
             } else if (playerRight == true) {
                 currentDirection = facingRight;
                 lastDirection = false;
                 hasMoved = true;
-                collision();
                 moveCharacter(moveSpeed, 0, facingRight);
             }
             if (hasMoved) {
@@ -262,7 +272,7 @@
                     }
                 }
             }
-            if (monsterPosX == monster1StartX) {
+            if (monsterPosX >= monster1StartX && monsterPosX <= (monster1StartX + 1)) {
                 monsterStart = true;
 
                 monsterEnd = false;
@@ -271,22 +281,34 @@
 
                 monsterEnd = true;
             }
+            if (monster3PosX >= monster3StartX && monster3PosX <= (monster3StartX + 1)) {
+                monster3Start = true;
+
+                monster3End = false;
+            } else if (monster3PosX >= monster3EndX && monster3PosX <= (monster3EndX + 1)) {
+                monster3Start = false;
+
+                monster3End = true;
+            }
             monster1Walk(monsterStart, monsterEnd);
+            monster3Walk(monster3Start, monster3End);
             if (!hasMoved) {
                 currentLoopIndex = 0;
             }
-            collision(monsterPosX, monsterPosY);
+            // collision(monsterPosX, monsterPosY);
+            // collision(monster3PosX, monster3PosY);
             ctxE.globalAlpha = 0.3;
             ctxE.drawImage(vignette, 0, 0);
             drawPlayer(animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
-            drawMonster(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY)
-            document.getElementById("bool5").innerHTML = playerCollision;
+            drawMonster1(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY);
+            drawMonster3(animationLoop[monster3CurrentLoopIndex], monster3CurrentDirection, monster3PosX, monster3PosY);
+            document.getElementById("bool4").innerHTML = playerCollision;
             if (hitTick >= 70) {
                 recentHit = false;
                 hitTick = 0;
             }
             if (!recentHit) {
-                if (playerCollision) {
+                if (collision(monsterPosX, monsterPosY) || collision(monster3PosX, monster3PosY)) {
                         monsterHit();
                 }
             }
@@ -341,7 +363,7 @@
         function monster1Walk(monsterStart, monsterEnd) {
 
             if (monsterStart) {
-                monster1CurrentDirection = monster1FaceRight;
+                monster1CurrentDirection = monsterFaceRight;
                 monster1FrameCount++
                 if (monster1FrameCount >= frameLimit) {
                     monster1FrameCount = 0;
@@ -354,7 +376,7 @@
 
             } else if (monsterEnd) {
                 monsterPosX -= monsterMoveSpeed;
-                monster1CurrentDirection = monster1FaceLeft;
+                monster1CurrentDirection = monsterFaceLeft;
                 monster1FrameCount++
                 if (monster1FrameCount >= frameLimit) {
                     monster1FrameCount = 0;
@@ -365,16 +387,44 @@
                 }
             }
         }
+
+        function monster3Walk(monsterStart, monsterEnd) {
+
+            if (monsterStart) {
+                monster3CurrentDirection = monsterFaceRight;
+                monster3FrameCount++
+                if (monster3FrameCount >= frameLimit) {
+                    monster3FrameCount = 0;
+                    monster3CurrentLoopIndex++;
+                    if (monster3CurrentLoopIndex >= animationLoop.length) {
+                        monster3CurrentLoopIndex = 0;
+                    }
+                }
+                monster3PosX += monster3MoveSpeed;
+
+            } else if (monsterEnd) {
+                monster3PosX -= monster3MoveSpeed;
+                monster3CurrentDirection = monsterFaceLeft;
+                monster3FrameCount++
+                if (monster3FrameCount >= frameLimit) {
+                    monster3FrameCount = 0;
+                    monster3CurrentLoopIndex++; 
+                    if (monster3CurrentLoopIndex >= animationLoop.length) {
+                        monster3CurrentLoopIndex = 0;
+                    }
+                }
+            }
+        }
         function collision(x, y) {
             if (x < playerX + 32 &&
                 x + 32 > playerX &&
                 y + 9 < playerY + 9 + 30 &&
                 y + 9 + 32 > playerY + 9) {
-                playerCollision = true;
+                return true;
             }
-            else {
-                playerCollision = false;
-            }
+            // else {
+            //     playerCollision = false;
+            // }
         }
         function whatPlayerCell() {
             for (let i = 0; i < allowedPath.length; i++) {
@@ -419,7 +469,7 @@
             if (!rightCellX == 0) {
                 newShapeW += 32;
             }
-            document.getElementById("bool2").innerHTML = "X-Led Shape: X: " + newShapeX + " Y: " + newShapeY + " W: " + newShapeW;
+            //document.getElementById("bool2").innerHTML = "X-Led Shape: X: " + newShapeX + " Y: " + newShapeY + " W: " + newShapeW;
             go = withinBounds(newShapeX, newShapeY, newShapeW, deltaX, deltaY);
             withinPath = go;
             return go;
@@ -459,7 +509,7 @@
             if (!downCellX == 0) {
                 newShapeH += 32;
             }
-            document.getElementById("bool3").innerHTML = "Y-Led shape: X: " + newShapeX + " Y: " + newShapeY + " H: " + newShapeH;
+            //document.getElementById("bool3").innerHTML = "Y-Led shape: X: " + newShapeX + " Y: " + newShapeY + " H: " + newShapeH;
             go = withinBounds(newShapeX, newShapeY, newShapeH, deltaX, deltaY);
             withinPath = go;
             return go;
@@ -486,7 +536,7 @@
             else if (paused) {
                 paused = false;
             }
-            document.getElementById("bool4").innerHTML = paused;
+            //document.getElementById("bool4").innerHTML = paused;
         }
     </script>
 </body>

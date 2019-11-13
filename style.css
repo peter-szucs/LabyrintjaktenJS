@@ -59,17 +59,23 @@ body {
     position: absolute;
 }
 #middleCanvas {
-    z-index: 3;
+    z-index: 4;
     position: absolute;
 }
 #effectCanvas {
-    z-index: 4;
+    z-index: 5;
     position: absolute;
     pointer-events: none;
 }
 
 #pcCanvas {
     z-index: 2;
+    position: absolute;
+    top: 59px;
+    left: 11px;
+}
+#monsterCanvas {
+    z-index: 3;
     position: absolute;
     top: 59px;
     left: 11px;
