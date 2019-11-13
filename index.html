@@ -9,9 +9,10 @@
 <body>
     <img id="logga" src="Logga.png">
     <img id="healthimg" src="Health.png">
-    <img id="healthbar0">
+    <div id="healthbar"></div>
+    <!-- <img id="healthbar0">
     <img id="healthbar1">
-    <img id="healthbar2">
+    <img id="healthbar2"> -->
     <img id="level" src="Level 1.png">
     <img id="cog" src="SettingsCog.png" onclick="pauseToggle()">
     <canvas id="bgCanvas" width="352" height="576"></canvas>
@@ -366,26 +367,26 @@
         }
 
         function moveCharacter(deltaX, deltaY, direction) {
-            // if (deltaX == -1) {
-            //     if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-            //         playerX += deltaX
-            //     }
-            // } else if (deltaX == 1) {
-            //     if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-            //         playerX += deltaX
-            //     }
-            // }
-            // if (deltaY == -1) {
-            //     if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-            //         playerY += deltaY
-            //     }
-            // } else if (deltaY == 1) {
-            //     if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-            //         playerY += deltaY
-            //     }
-            // }
-            playerX += deltaX;
-            playerY += deltaY;
+            if (deltaX == -1) {
+                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
+                    playerX += deltaX
+                }
+            } else if (deltaX == 1) {
+                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
+                    playerX += deltaX
+                }
+            }
+            if (deltaY == -1) {
+                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
+                    playerY += deltaY
+                }
+            } else if (deltaY == 1) {
+                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
+                    playerY += deltaY
+                }
+            }
+            // playerX += deltaX;
+            // playerY += deltaY;
             currentDirection = direction;
         }
 
@@ -636,6 +637,7 @@
         }
 
         function addHealthBars() {
+            var outelement = document.getElementById("healthbar");
             for (let i = 0; i < 3; i++) {
                 var img = document.createElement("healthbar" + i);
                 img.src = "Healthbar.png";
