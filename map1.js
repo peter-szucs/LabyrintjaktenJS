@@ -35,3 +35,5 @@ const monster2EndY = (9 * gameTiles) - 12;
 const monster3StartX = 5 * gameTiles;
 const monster3EndX = 9 * gameTiles;
 const monster3StartY = (11 * gameTiles) - 12;
+const exitLevelX = 10 * gameTiles;
+const exitLevelY = 11 * gameTiles;

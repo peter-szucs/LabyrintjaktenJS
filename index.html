@@ -10,9 +10,9 @@
     <img id="logga" src="Logga.png">
     <img id="healthimg" src="Health.png">
     <div id="healthbar"></div>
-    <!-- <img id="healthbar0">
-    <img id="healthbar1">
-    <img id="healthbar2"> -->
+    <img id="healthbar0" src="Healthbar.png">
+    <img id="healthbar1" src="Healthbar.png">
+    <img id="healthbar2" src="Healthbar.png">
     <img id="level" src="Level 1.png">
     <img id="cog" src="SettingsCog.png" onclick="pauseToggle()">
     <canvas id="bgCanvas" width="352" height="576"></canvas>
@@ -121,15 +121,15 @@
         playerChar.src = 'PCTilesheet.png';
         monsterChar1.src = 'Monster1TileSheet.png';
         monsterChar3.src = "Monster3TileSheet.png";
-        level1.src = "Level 1.png"
+        level1.src = "Level 1.png";
 
         tileSheet.onload = function() {
             initializeVariables();
             draw();
-            addHealthBars();
+            window.requestAnimationFrame(mainLoop);
         }
 
-        window.requestAnimationFrame(mainLoop);
+
 
         function initializeVariables() {
             playerHealth = 3;
@@ -190,7 +190,7 @@
             fpsCounter();
             document.getElementById('bool2').innerHTML = Math.floor(fps);
             document.getElementById('bool3').innerHTML = playerX;
-            document.getElementById('bool4').innerHTML = monsterPosX;
+            document.getElementById('bool4').innerHTML = alphaCounter;
             currentGameState();
             window.requestAnimationFrame(mainLoop);
         }
@@ -255,7 +255,7 @@
         function afterStart() {
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
-            ctxE.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
+            ctxE.clearRect(0, 0, effectCanvas.width, middleCanvas.height);
             document.getElementById("overlayCanvas").style.pointerEvents = "none";
             document.getElementById("middleCanvas").style.pointerEvents = "none";
             currentGameState = gameLoop;
@@ -333,6 +333,9 @@
             drawPlayer(animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
             drawMonster1(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY);
             drawMonster3(animationLoop[monster3CurrentLoopIndex], monster3CurrentDirection, monster3PosX, monster3PosY);
+            if (collision(exitLevelX + 26, exitLevelY)) {
+                currentGameState = winLevel;
+            }
             if (hitTick >= 70) {
                 recentHit = false;
                 hitTick = 0;
@@ -355,38 +358,36 @@
         function monsterHit() {
             if (playerHealth == 1) {
                 playerHealth -= 1;
-                var healthTick = document.getElementById('healthbar' + playerHealth)
-                healthTick.parentNode.removeChild(healthTick);
+                document.getElementById('healthbar' + playerHealth).src = "emptyHealthbar.png";
                 currentGameState = gameOver;
             } else {
                 playerHealth -= 1;
-                var healthTick = document.getElementById('healthbar' + playerHealth)
-                healthTick.parentNode.removeChild(healthTick);
+                document.getElementById('healthbar' + playerHealth).src = "emptyHealthbar.png";
                 recentHit = true;
             }
         }
 
         function moveCharacter(deltaX, deltaY, direction) {
-            if (deltaX == -1) {
-                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-                    playerX += deltaX
-                }
-            } else if (deltaX == 1) {
-                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-                    playerX += deltaX
-                }
-            }
-            if (deltaY == -1) {
-                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-                    playerY += deltaY
-                }
-            } else if (deltaY == 1) {
-                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-                    playerY += deltaY
-                }
-            }
-            // playerX += deltaX;
-            // playerY += deltaY;
+            // if (deltaX == -1) {
+            //     if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
+            //         playerX += deltaX
+            //     }
+            // } else if (deltaX == 1) {
+            //     if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
+            //         playerX += deltaX
+            //     }
+            // }
+            // if (deltaY == -1) {
+            //     if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
+            //         playerY += deltaY
+            //     }
+            // } else if (deltaY == 1) {
+            //     if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
+            //         playerY += deltaY
+            //     }
+            // }
+            playerX += deltaX;
+            playerY += deltaY;
             currentDirection = direction;
         }
 
@@ -608,13 +609,17 @@
                     event.y > 609 &&
                     event.y < 723
                 ) {
-                    restartGame();
+                    restartGamePre();
                 }
             });
         }
 
+        function restartGamePre() {
+            currentGameState = restartGame;
+        }
+
         function restartGame() {
-            if (alphaCounter <= 1.0 && alphaCounter > 0.01) {
+            if (alphaCounter <= 1.1 && alphaCounter > 0.01) {
                 ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height)
                 ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
                 ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
@@ -626,23 +631,54 @@
                 ctxE.drawImage(vignette, 0, 0);
                 ctxO.globalAlpha = alphaCounter;
                 ctxM.globalAlpha = alphaCounter;
-                alphaCounter -= 0.01;
-            } else if (alphaCounter < 0.01) {
-                document.getElementById("overlayCanvas").style.pointerEvents = "none";
-                document.getElementById("middleCanvas").style.pointerEvents = "none";
+                alphaCounter += -0.01;
+            } else if (alphaCounter <= 0.01) {
                 initializeVariables();
                 addHealthBars();
+                document.getElementById("overlayCanvas").style.pointerEvents = "none";
+                document.getElementById("middleCanvas").style.pointerEvents = "none";
                 currentGameState = gameLoop;
             }
         }
 
         function addHealthBars() {
-            var outelement = document.getElementById("healthbar");
             for (let i = 0; i < 3; i++) {
-                var img = document.createElement("healthbar" + i);
-                img.src = "Healthbar.png";
-                document.getElementById('healthbar' + i).appendChild(img);
+                document.getElementById('healthbar' + i).src = "Healthbar.png";
             }
+        }
+
+        function winLevel() {
+            if (alphaCounter < 1.0) {
+                ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                ctxO.globalAlpha = alphaCounter;
+                ctxO.fillStyle = "#000000";
+                ctxO.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                alphaCounter += 0.02;
+            } else if (alphaCounter >= 1.0) {
+                document.getElementById("overlayCanvas").style.pointerEvents = "initial";
+                currentGameState = winLevelChoice;
+            }
+        }
+
+        function winLevelChoice() {
+            ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
+            ctxE.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
+            ctxM.drawImage(startScreenBG, 0, 0);
+            ctxO.drawImage(startScreenLogo, 16, 87);
+            ctxO.drawImage(playButton, 73, 609);
+            ctxE.globalAlpha = 0.5;
+            ctxE.drawImage(vignette, 0, 0);
+            overlayCanvas.addEventListener('click', function(event) {
+                if (
+                    event.x > 73 &&
+                    event.x < 302 &&
+                    event.y > 609 &&
+                    event.y < 723
+                ) {
+                    restartGamePre();
+                }
+            });
         }
 
         function fpsCounter() {
