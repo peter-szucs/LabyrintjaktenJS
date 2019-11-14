@@ -2,19 +2,18 @@
 <html lang="sv">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body>
-    <img id="logga" src="Logga.png">
-    <img id="healthimg" src="Health.png">
+    <img id="healthimg" src="img/Health.png">
     <div id="healthbar"></div>
-    <img id="healthbar0" src="Healthbar.png">
-    <img id="healthbar1" src="Healthbar.png">
-    <img id="healthbar2" src="Healthbar.png">
-    <img id="level" src="Level 1.png">
-    <img id="cog" src="pause-button.png" onclick="pauseToggle()">
+    <img id="healthbar0" src="img/Healthbar.png">
+    <img id="healthbar1" src="img/Healthbar.png">
+    <img id="healthbar2" src="img/Healthbar.png">
+    <img id="level" src="img/Level 1.png">
+    <img id="cog" src="img/pause-button.png" onclick="pauseToggle()">
     <canvas id="bgCanvas" width="352" height="576"></canvas>
     <canvas id="pcCanvas" width="352" height="576"></canvas>
     <canvas id="shadowCanvas" width="352" height="576"></canvas>
@@ -33,7 +32,8 @@
     </div>
     <audio id="menuLoop" src="foolboymedia__sky-loop.mp3" preload="auto"></audio>
     <div id="scriptLinkPlaceholder">
-        <script src="map1.js" id="scriptLink" type="text/javascript"></script>
+        <script src="map1.js" id="mapScripts" type="text/javascript"></script>
+        <script src="animate.js" id="animateScripts" type="text/javascript"></script>
     </div>
     <script>
         // Deklarerar alla Globala variabler nedanför
@@ -61,7 +61,7 @@
         let ctxM = middleCanvas.getContext('2d');
         let ctxE = effectCanvas.getContext('2d');
         let ctxO = overlayCanvas.getContext('2d');
-        // Deklarera KollisionsArrayer
+        // Deklarera Kollisions/PathingArrayer
         let walls = [];
         let allowedPath = [];
         // Deklarera spelarkontrollerande variabler
@@ -106,10 +106,11 @@
         // Världsstyrande variabler
         let paused = false;
         let currentGameState = startGame;
+        let keyPresses = {};
         // fps
         let lastCalledTime;
         let fps;
-        // Deklarera objekt och sedan tilldela alla bilder som används att måla Canvas med
+        // Deklarera objekt och sedan tilldela alla bilder som används att måla på Canvas med
         let startScreenBG = new Image();
         let startScreenLogo = new Image();
         let playButton = new Image();
@@ -121,27 +122,40 @@
         let monsterChar1 = new Image();
         let monsterChar3 = new Image();
         let level1 = new Image();
-        startScreenBG.src = "startScreenBG.png";
-        startScreenLogo.src = "startScreenLogo.png";
-        playButton.src = "spelaButton.png";
-        smoke1.src = "smoke1.png";
-        smoke2.src = "smoke2.png";
-        vignette.src = "grunge-vignette.png";
-        tileSheet.src = "Tilesheet.png";
-        playerChar.src = 'PCTilesheet.png';
-        monsterChar1.src = 'Monster1TileSheet.png';
-        monsterChar3.src = "Monster3TileSheet.png";
-        level1.src = "Level 1.png";
+        startScreenBG.src = "img/startScreenBG.png";
+        startScreenLogo.src = "img/startScreenLogo.png";
+        playButton.src = "img/spelaButton.png";
+        smoke1.src = "img/smoke1.png";
+        smoke2.src = "img/smoke2.png";
+        vignette.src = "img/grunge-vignette.png";
+        tileSheet.src = "img/Tilesheet.png";
+        playerChar.src = "img/PCTilesheet.png";
+        monsterChar1.src = "img/Monster1TileSheet.png";
+        monsterChar3.src = "img/Monster3TileSheet.png";
+        level1.src = "img/Level 1.png";
         // Viktigt att bilderna laddas innan vi använder dom på canvas, därför använder jag onload på en bild.
         tileSheet.onload = function() {
-                // Tilldela alla startvariabler
-                initializeVariables();
-                // Måla kartan
-                draw();
-                // Sätt igång Huvudloopen för spelet.
-                window.requestAnimationFrame(mainLoop);
-            }
-            // Tilldela startvärden
+            // Tilldela alla startvariabler
+            initializeVariables();
+            // Måla kartan
+            draw();
+            // Sätt igång Huvudloopen för spelet.
+            window.requestAnimationFrame(mainLoop);
+        }
+
+
+        window.addEventListener('keydown', keyDownListener, false);
+
+        function keyDownListener(event) {
+            keyPresses[event.key] = true;
+        }
+
+        window.addEventListener('keyup', keyUpListener, false);
+
+        function keyUpListener(event) {
+            keyPresses[event.key] = false;
+        }
+        // Tilldela startvärden
         function initializeVariables() {
             playerHealth = 3;
             playerX = playerStartX;
@@ -173,7 +187,7 @@
             hitTick = 0;
             alphaCounter = 0;
         }
-        // Rita ut kartan
+        // Rita ut kartan. Kartan ritas alltid bara en gång så vi slipper uppdatera den varje frame, vilket är onödigt
         function draw() {
             var posX = 0;
             var posY = 0;
@@ -183,7 +197,7 @@
                     var sourceX = (value % 6) * 32; // Räkna ut vilken tile i tilesheet X led.
                     var sourceY = Math.floor(value / 6) * 32; // Y led
                     ctxBg.drawImage(tileSheet, sourceX, sourceY, 32, 32, posX, posY, 32, 32);
-                    // Lägg till de block som spelaren kan gå i en array
+                    // Lägg till de block som spelaren kan gå i till en array
                     if (value == 0) {
                         allowedPath.push([posX, posY])
                     }
@@ -193,6 +207,8 @@
                     }
                     posX += 32;
                 }
+                // itererar upp "i" till nästa nivå, alltså ett block ner i Y-led på kartan, så vi nollställer X och plussar på
+                // en blockhöjd(32) till Y
                 posX = 0;
                 posY += 32;
             }
@@ -201,12 +217,12 @@
         function mainLoop() {
             fpsCounter();
             document.getElementById('bool2').innerHTML = Math.floor(fps);
-            document.getElementById('bool3').innerHTML = playerX;
+            document.getElementById('bool3').innerHTML = frameCount;
             document.getElementById('bool4').innerHTML = alphaCounter;
             currentGameState();
             window.requestAnimationFrame(mainLoop);
         }
-        // gamestate när spelet startar, ritar ut alla grafiska element, StartMeny helt enkelt
+        // gamestate när spelet startar, ritar ut alla grafiska element för StartMenyn
         function startGame() {
             document.getElementById('menuLoop').play();
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
@@ -238,35 +254,6 @@
                 }
             });
         }
-        // Flytta rök2
-        function moveSmoke2(deltaX) {
-            smoke2X += deltaX;
-            drawSmoke2(smoke2X, 0);
-            smokeFrame2++;
-            if (smokeFrame2 == 3000) {
-                smoke2X = 100;
-                smokeFrame2 = 0;
-            }
-        }
-        // Flytta rök1
-        function moveSmoke(deltaX) {
-            smoke1X += deltaX;
-            drawSmoke(smoke1X, 0);
-            smokeFrame1++;
-            smokeFrameTrigger++;
-            if (smokeFrame1 == 3000) {
-                smoke1X = 0;
-                smokeFrame1 = 0;
-            }
-        }
-        // Rita rök1
-        function drawSmoke(canvasX, canvasY) {
-            ctxM.drawImage(smoke1, canvasX, canvasY)
-        }
-        // Rita Rök2
-        function drawSmoke2(canvasX, canvasY) {
-            ctxM.drawImage(smoke2, canvasX, canvasY)
-        }
         // steg 2 av att starta spelet (då man tryckt på knappen) Jag var tvungen att göra ett steg till för
         // av någon anledning går det inte att ändra en variabel när man använder sig av EventListener "click"
         function afterStart() {
@@ -284,7 +271,18 @@
         function pause() {
             if (paused) {
                 paused = false;
+                document.getElementById('cog').src = "img/pause-button.png";
                 currentGameState = gameLoop;
+            }
+        }
+        // Toggle funktion för pauseknappen
+        function pauseToggle() {
+            if (!paused) {
+                paused = true;
+            } else if (paused) {
+
+                paused = false;
+
             }
         }
         // SpelLoopen
@@ -295,30 +293,32 @@
             ctxShadow.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
             // variabel för att kolla om spelaren rört sig eller inte, animationsrelaterat
             let hasMoved = false;
-            // Kolla vilken "Cell" spelaren är i (relaterat till kollisionsfunktionen mot väggarna för rörelsen)
+            // Kolla vilken "Cell/Block" spelaren är i (relaterat till kollisionsfunktionen mot väggarna för rörelsen)
             whatPlayerCell();
-            // Input för spelarens rörele, upp, ner, vänster, höger. Kopplat till respektive knappar
-            if (playerUp == true) {
-                currentDirection = facingUp;
-                hasMoved = true;
-                moveCharacter(0, -moveSpeed, facingUp);
-            } else if (playerDown == true) {
+            // Input för spelarens rörele, upp, ner, vänster, höger. Kopplat till respektive knappar (och w,a,s,d för testnings skull)
+            // Anledningen att jag har en för varje vädersträck är p.g.a. animeringen. jag behöver ha koll på vart han är och ska.
+            if (playerUp == true || keyPresses.w) {
+                currentDirection = facingUp; // sätter spelarens riktning (så han stannar åt det hållet om vi släpper alla knappar)
+                hasMoved = true; // vår rörelse-bool satt till sant
+                moveCharacter(0, -moveSpeed, facingUp); // starta "Flytta spelaren"-funktionen
+            } else if (playerDown == true || keyPresses.s) {
                 currentDirection = facingDown;
                 hasMoved = true;
                 moveCharacter(0, moveSpeed, facingDown);
             }
-            if (playerLeft == true) {
+            if (playerLeft == true || keyPresses.a) {
                 currentDirection = facingLeft;
                 hasMoved = true;
                 moveCharacter(-moveSpeed, 0, facingLeft);
-            } else if (playerRight == true) {
+            } else if (playerRight == true || keyPresses.d) {
                 currentDirection = facingRight;
                 hasMoved = true;
                 moveCharacter(moveSpeed, 0, facingRight);
             }
-            // Här används ovanstående deklarerad variabel för att starta frameräkningen på gåanimationen
+            // Här används ovanstående deklarerad variabel för att starta frameräkningen på gåanimationen. så om användaren
+            // håller inne knappen körs den här IF satsen hela tiden.
             if (hasMoved) {
-                frameCount++ // räkna frames (när man håller in gåknappen)
+                frameCount++ // räkna frames
                 if (frameCount >= frameLimit) { // När vi nått önskad framelimit (12 frames innan vi byter bild)
                     frameCount = 0; // nollställ
                     currentLoopIndex++; // öka index för vilken bild att använda
@@ -327,6 +327,10 @@
                     }
                 }
             }
+            if (!hasMoved) { // om spelaren ej rört sig
+                currentLoopIndex = 0; // nollställ loopen (för att förhindra att spelaren stannar mitt i ett steg t.ex.)
+            }
+            // Kolla monstrens start/slutpunkter mot var de befinner sig. Ändra en bool för att byta riktning.
             if (monsterPosX >= monster1StartX && monsterPosX <= (monster1StartX + 1)) {
                 monsterStart = true;
 
@@ -345,141 +349,54 @@
 
                 monster3End = true;
             }
+            // Animera/flytta monstren
             monster1Walk(monsterStart, monsterEnd);
             monster3Walk(monster3Start, monster3End);
-            if (!hasMoved) {
-                currentLoopIndex = 0;
-            }
+            // måla en vignette
             ctxE.globalAlpha = 0.3;
             ctxE.drawImage(vignette, 0, 0);
+            // Måla denna frames spelare och monster
             drawPlayer(animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
             drawMonster1(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY);
             drawMonster3(animationLoop[monster3CurrentLoopIndex], monster3CurrentDirection, monster3PosX, monster3PosY);
+            // Kolla om spelaren hittar utgången
             if (collision(exitLevelX + 26, exitLevelY)) {
                 currentGameState = winLevel;
             }
-            if (hitTick >= 70) {
-                recentHit = false;
-                hitTick = 0;
+            // Kolla om spelarens timer för monsterkollision har passerat
+            if (hitTick >= 70) { // 70 frames, en dryg sekunds andrum ("odödlig") efter kollision med monster
+                recentHit = false; // avsluta "odödligheten"
+                hitTick = 0; // reset framecount för odödlighet (till nästa gång, om spelaren har liv kvar)
             }
+            // kolla om kollision med monster inträffar, om spelaren inte är i "odödligt" tillstånd...
             if (!recentHit) {
                 if (collision(monsterPosX, monsterPosY) || collision(monster3PosX, monster3PosY)) {
-                    monsterHit();
+                    monsterHit(); // aktivera funktionen för kollision
                 }
+                // ... annars +1 framecount för odödlighet
             } else if (recentHit) {
                 hitTick++;
             }
+            // Sist i gameloopen kollar vi om spelet är pausat (genom pause-toggle funktionen)
             if (paused) {
-                document.getElementById('cog').src = "pause-button.png";
+                document.getElementById('cog').src = "img/play-button.png";
                 paused = false;
                 currentGameState = pause;
             }
         }
-
+        // kollision med monster, kolla om spelaren inte har något liv kvar och starta då gameOver gameState, annars trigga odödlighetsBool
         function monsterHit() {
             if (playerHealth == 1) {
                 playerHealth -= 1;
-                document.getElementById('healthbar' + playerHealth).src = "emptyHealthbar.png";
+                document.getElementById('healthbar' + playerHealth).src = "img/emptyHealthbar.png";
                 currentGameState = gameOver;
             } else {
                 playerHealth -= 1;
-                document.getElementById('healthbar' + playerHealth).src = "emptyHealthbar.png";
+                document.getElementById('healthbar' + playerHealth).src = "img/emptyHealthbar.png";
                 recentHit = true;
             }
         }
-
-        function moveCharacter(deltaX, deltaY, direction) {
-            if (deltaX == -1) {
-                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-                    playerX += deltaX
-                }
-            } else if (deltaX == 1) {
-                if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-                    playerX += deltaX
-                }
-            }
-            if (deltaY == -1) {
-                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-                    playerY += deltaY
-                }
-            } else if (deltaY == 1) {
-                if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-                    playerY += deltaY
-                }
-            }
-            // playerX += deltaX;
-            // playerY += deltaY;
-            currentDirection = direction;
-        }
-
-        function drawPlayer(frameX, frameY, canvasX, canvasY) {
-            ctxPc.drawImage(playerChar, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
-        }
-
-        function drawMonster1(frameX, frameY, canvasX, canvasY) {
-            ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
-        }
-
-        function drawMonster3(frameX, frameY, canvasX, canvasY) {
-            ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
-        }
-
-        function monster1Walk(monsterStart, monsterEnd) {
-
-            if (monsterStart) {
-                monster1CurrentDirection = monsterFaceRight;
-                monster1FrameCount++
-                if (monster1FrameCount >= frameLimit) {
-                    monster1FrameCount = 0;
-                    monster1CurrentLoopIndex++;
-                    if (monster1CurrentLoopIndex >= animationLoop.length) {
-                        monster1CurrentLoopIndex = 0;
-                    }
-                }
-                monsterPosX += monsterMoveSpeed;
-
-            } else if (monsterEnd) {
-                monsterPosX -= monsterMoveSpeed;
-                monster1CurrentDirection = monsterFaceLeft;
-                monster1FrameCount++
-                if (monster1FrameCount >= frameLimit) {
-                    monster1FrameCount = 0;
-                    monster1CurrentLoopIndex++;
-                    if (monster1CurrentLoopIndex >= animationLoop.length) {
-                        monster1CurrentLoopIndex = 0;
-                    }
-                }
-            }
-        }
-
-        function monster3Walk(monsterStart, monsterEnd) {
-
-            if (monsterStart) {
-                monster3CurrentDirection = monsterFaceRight;
-                monster3FrameCount++
-                if (monster3FrameCount >= frameLimit) {
-                    monster3FrameCount = 0;
-                    monster3CurrentLoopIndex++;
-                    if (monster3CurrentLoopIndex >= animationLoop.length) {
-                        monster3CurrentLoopIndex = 0;
-                    }
-                }
-                monster3PosX += monster3MoveSpeed;
-
-            } else if (monsterEnd) {
-                monster3PosX -= monster3MoveSpeed;
-                monster3CurrentDirection = monsterFaceLeft;
-                monster3FrameCount++
-                if (monster3FrameCount >= frameLimit) {
-                    monster3FrameCount = 0;
-                    monster3CurrentLoopIndex++;
-                    if (monster3CurrentLoopIndex >= animationLoop.length) {
-                        monster3CurrentLoopIndex = 0;
-                    }
-                }
-            }
-        }
-
+        // kollisionsfunktion, vi tar in x och y värde på objektet spelaren ska testa kollision mot (rektangulär kollision)
         function collision(x, y) {
             if (x < playerX + 32 &&
                 x + 32 > playerX &&
@@ -488,19 +405,25 @@
                 return true;
             }
         }
-
+        // en del av min pathing/väggkollision för spelaren. en rektangulär omvänd kollision egentligen för att se vilken "cell"
+        // eller vilket "block" spelaren befinner sig i(varje cell/block är 32*32 px)
         function whatPlayerCell() {
+            // allowedPath är arrayen som skapades då kartan målades för alla "0" i mapArrayn vilket symboliserar marken 
+            // där man kan gå. [X,Y] värden för varje sådant block kollas mot spelarens X,Y och returnerar indexet i allowedPath
+            // arrayn vilket tilldelas playerCell för att tracka vilken cell vi är i.
             for (let i = 0; i < allowedPath.length; i++) {
-                if (playerX + 10 > allowedPath[i][0] &&
-                    playerX + 20 < allowedPath[i][0] + 32 &&
-                    playerY + 19 >= allowedPath[i][1] &&
+                if (playerX + 10 > allowedPath[i][0] && // +10 för att göra detectionsrektangeln lite mindre än vad spelaren är
+                    playerX + 20 < allowedPath[i][0] + 32 && // +20 samma här
+                    playerY + 19 >= allowedPath[i][1] && // övre Y koordinat, +19 för att spelarens sprites height är 41 istället för 32. (9+10)
                     playerY + 40 <= allowedPath[i][1] + 32) {
                     playerCell = i;
                 }
             }
         }
-
+        // Funktion för min patenterade pathing. :) - vi tar in spelarens nuvarande cells x&y (x,y) och åt vilket håll spelaren
+        // försöker gå (deltaX/deltaY). Denna behandlar endast X ledet eftersom vi försöker göra en ny rektangel.
         function playerPathX(x, y, deltaX, deltaY) {
+            // skapa de variabler vi behöver för att skapa en ny shape (baserat på var spelaren är)
             var leftCellX = 0;
             var leftCellY = 0;
             var rightCellX = 0;
@@ -508,36 +431,48 @@
             var newShapeX = 0;
             var newShapeY = 0;
             var newShapeW = 32;
-            var go = false;
+            var go = false; // bool för returnering
+            // gå igenom allowedPath arrayn
             for (let i = 0; i < allowedPath.length; i++) {
+                // OM det blir en match för en cell till vänster om spelarens cell
                 if (x == allowedPath[i][0] + 32 &&
                     y == allowedPath[i][1]) {
+                    //skapa X,Y kordinat för vänstra delen av rektangeln (kan ju vara samma cell som spelaren redan är i,
+                    // då stannar värdet på 0)
                     leftCellX = allowedPath[i][0];
                     leftCellY = allowedPath[i][1];
                 }
+                // samma fast åt höger från spelaren
                 if (x + 32 == allowedPath[i][0] &&
                     y == allowedPath[i][1]) {
                     rightCellX = allowedPath[i][0];
                     rightCellY = allowedPath[i][1];
                 }
             }
+            // OM vi fått träff på en cell åt vänster...
             if (!leftCellX == 0) {
+                //...skapa koordinat för den nya rektangeln och lägg till ett blocks längd
                 newShapeX = leftCellX;
                 newShapeY = leftCellY;
                 newShapeW += 32;
+                // ANNARS nya rektangelns koordinater är samma som spelarens cell
             } else if (leftCellX == 0) {
                 newShapeX = x;
                 newShapeY = y;
             }
+            // OM vi fått träff åt höger lägg till ett blocks/cells längd
             if (!rightCellX == 0) {
                 newShapeW += 32;
             }
+            // kolla så spelaren är innanför den nya rektangeln
             go = withinBounds(newShapeX, newShapeY, newShapeW, deltaX, deltaY);
-            withinPath = go;
+            withinPath = go; // variabel för felsökning och tester
+            // returnera om JA eller NEJ
             return go;
 
         }
-
+        // samma som ovan fast vi kollar Y led istället och skapar i så fall en vertikal rektangel
+        // nu ser jag att jag antagligen kan använda en av dom här bara för både X och Y led... ^_^
         function playerPathY(x, y, deltaX, deltaY) {
             var upCellX = 0;
             var upCellY = 0;
@@ -576,12 +511,15 @@
             return go;
 
         }
-
+        // funktion för att kolla om spelaren är innanför sin path. vi tar in x,y,w/h för rektangeln och vilken riktning
         function withinBounds(x, y, wh, deltaX, deltaY) {
+            // För att försöka minimera att spelaren måste hålla sig exakt innanför vår path(svårt i T-korsningar t.ex.)
+            // gör vi spelarens hitbox lite mindre än ett blocks storlek.
             pClipX = playerX + 2;
             pClipY = playerY + 11;
             playerW = 24;
             playerH = 30;
+            // är rektangeln innanför rektangeln...
             if (pClipX + deltaX > x &&
                 pClipX + playerW + deltaX < x + wh &&
                 pClipY + deltaY > y &&
@@ -590,32 +528,24 @@
             } else
                 return false;
         }
-
-        function pauseToggle() {
-            if (!paused) {
-                document.getElementById('cog').src = "play-button.png";
-                paused = true;
-            } else if (paused) {
-
-                paused = false;
-
-            }
-        }
-
+        // gameState för när spelarens liv är slut
         function gameOver() {
+            // FADE TO BLACK
             if (alphaCounter < 1.0) {
                 ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
                 ctxO.globalAlpha = alphaCounter;
                 ctxO.fillStyle = "#000000";
                 ctxO.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
                 alphaCounter += 0.01;
+                // När faden är klar, aktivera interaktionsmöjlighet på översta canvas och starta nästa gameState
             } else if (alphaCounter >= 1.0) {
                 document.getElementById("overlayCanvas").style.pointerEvents = "initial";
                 currentGameState = gameOverContinue;
             }
         }
-
+        // Steg två när spelaren förlorat. En avslutningsmeny liknande startmenyn med möjlighet att försöka igen (börja om)
         function gameOverContinue() {
+            // Rita ut alla grafiska element
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
             ctxE.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
@@ -625,6 +555,7 @@
             ctxO.drawImage(playButton, 73, 609);
             ctxE.globalAlpha = 0.5;
             ctxE.drawImage(vignette, 0, 0);
+            // Göra "Försök igen" knappen klickbar
             overlayCanvas.addEventListener('click', function(event) {
                 if (
                     event.x > 73 &&
@@ -636,12 +567,13 @@
                 }
             });
         }
-
+        // Samma som i startmenyn, går ej att bara ställa nytt gameState på click Eventet så vi får göra det här
         function restartGamePre() {
             currentGameState = restartGame;
         }
 
         function restartGame() {
+            // Fade ner menyn
             if (alphaCounter <= 1.1 && alphaCounter > 0.01) {
                 ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height)
                 ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
@@ -655,19 +587,22 @@
                 ctxO.globalAlpha = alphaCounter;
                 ctxM.globalAlpha = alphaCounter;
                 alphaCounter += -0.01;
+                // När fade är klar..
             } else if (alphaCounter <= 0.01) {
-                initializeVariables();
-                addHealthBars();
+                initializeVariables(); // initiera startvariabler
+                addHealthBars(); // lägg till healthbars
+                // ta bort interageringsmöjlighet för de översta canvas
                 document.getElementById("overlayCanvas").style.pointerEvents = "none";
                 document.getElementById("middleCanvas").style.pointerEvents = "none";
                 alphaCounter = 0;
+                // Starta spelet igen
                 currentGameState = gameLoop;
             }
         }
-
+        // funktion för att addera healthbars till full
         function addHealthBars() {
             for (let i = 0; i < 3; i++) {
-                document.getElementById('healthbar' + i).src = "Healthbar.png";
+                document.getElementById('healthbar' + i).src = "img/Healthbar.png";
             }
         }
 

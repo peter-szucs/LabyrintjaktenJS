@@ -1,5 +1,5 @@
 body {
-    background-image: url("startScreenBG.png");
+    background-image: url("img/startScreenBG.png");
     width: 375px;
     height: 812px;
     background-repeat: no-repeat;
@@ -13,13 +13,6 @@ body {
     position: absolute;
     top: 40px;
     left: 600px;
-}
-
-#logga {
-    position: absolute;
-    top: 632px;
-    left: 100px;
-    z-index: -1;
 }
 
 #healthimg {
