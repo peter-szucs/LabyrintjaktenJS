@@ -14,7 +14,7 @@
     <img id="healthbar1" src="Healthbar.png">
     <img id="healthbar2" src="Healthbar.png">
     <img id="level" src="Level 1.png">
-    <img id="cog" src="SettingsCog.png" onclick="pauseToggle()">
+    <img id="cog" src="pause-button.png" onclick="pauseToggle()">
     <canvas id="bgCanvas" width="352" height="576"></canvas>
     <canvas id="pcCanvas" width="352" height="576"></canvas>
     <canvas id="shadowCanvas" width="352" height="576"></canvas>
@@ -36,31 +36,80 @@
         <script src="map1.js" id="scriptLink" type="text/javascript"></script>
     </div>
     <script>
+        // Deklarerar alla Globala variabler nedanför
+        // Constants för animationsrelaterade variabler som ej ändras
         const facingDown = 0;
         const facingUp = 3;
         const facingLeft = 1;
         const facingRight = 2;
         const animationLoop = [0, 1, 0, 2];
         const frameLimit = 12;
-        const moveSpeed = 1;
         const monsterFaceRight = 0;
         const monsterFaceLeft = 1;
-        let paused = false;
-        let playerHealth;
+        const moveSpeed = 1;
+        // Initiera canvasobjekten       
         let overlayCanvas = document.getElementById('overlayCanvas');
         let middleCanvas = document.getElementById('middleCanvas');
         let effectCanvas = document.getElementById('effectCanvas');
         let pcCanvas = document.getElementById('pcCanvas');
         let shadowCanvas = document.getElementById('shadowCanvas');
         let bgCanvas = document.getElementById('bgCanvas');
+        // Initiera kontexten för att kunna måla på varje canvas
         let ctxPc = pcCanvas.getContext('2d');
         let ctxShadow = shadowCanvas.getContext('2d');
         let ctxBg = bgCanvas.getContext('2d');
         let ctxM = middleCanvas.getContext('2d');
         let ctxE = effectCanvas.getContext('2d');
         let ctxO = overlayCanvas.getContext('2d');
+        // Deklarera KollisionsArrayer
         let walls = [];
         let allowedPath = [];
+        // Deklarera spelarkontrollerande variabler
+        let playerHealth;
+        let currentLoopIndex;
+        let frameCount;
+        let currentDirection;
+        let playerX;
+        let playerY;
+        let playerUp;
+        let playerDown;
+        let playerLeft;
+        let playerRight;
+        let playerCell;
+        let withinPath;
+        let recentHit;
+        let hitTick;
+        // Deklarera monsterkontrollerande variabler
+        let monsterPosX;
+        let monsterPosY;
+        let monster3PosX;
+        let monster3PosY;
+        let monster1CurrentDirection;
+        let monster1FrameCount;
+        let monster1CurrentLoopIndex;
+        let monster3CurrentDirection;
+        let monster3FrameCount;
+        let monster3CurrentLoopIndex;
+        let monsterStart;
+        let monsterEnd;
+        let monster3Start;
+        let monster3End;
+        // Animationsrelaterade variabler
+        let alphaCounter;
+        let smoke1X = 0;
+        let smoke2X = 0;
+        let smokeReset = false;
+        let smokeFrame1 = 0;
+        let smokeFrame2 = 0;
+        let smokeFrameTrigger = 0;
+        let smoke2T = false;
+        // Världsstyrande variabler
+        let paused = false;
+        let currentGameState = startGame;
+        // fps
+        let lastCalledTime;
+        let fps;
+        // Deklarera objekt och sedan tilldela alla bilder som används att måla Canvas med
         let startScreenBG = new Image();
         let startScreenLogo = new Image();
         let playButton = new Image();
@@ -72,46 +121,6 @@
         let monsterChar1 = new Image();
         let monsterChar3 = new Image();
         let level1 = new Image();
-        let lastCalledTime;
-        let fps;
-        let currentLoopIndex;
-        let frameCount;
-        let currentDirection;
-        let playerX;
-        let playerY;
-        let playerUp;
-        let playerDown;
-        let playerLeft;
-        let playerRight;
-        let monsterPosX;
-        let monsterPosY;
-        let monster3PosX;
-        let monster3PosY;
-        let monster1CurrentDirection;
-        let monster1FrameCount;
-        let monster1CurrentLoopIndex;
-        let monster3CurrentDirection;
-        let monster3FrameCount;
-        let monster3CurrentLoopIndex;
-        let playerCell;
-        let lastDirection;
-        let withinPath;
-        let monsterStart;
-        let monsterEnd;
-        let monster3Start;
-        let monster3End;
-        let recentHit;
-        let hitTick;
-        let alphaCounter;
-        let smoke1X = 0;
-        let smoke2X = 0;
-        let smokeReset = false;
-        let smokeFrame1 = 0;
-        let smokeFrame2 = 0;
-        let smokeFrameTrigger = 0;
-        let smoke2T = false;
-        let currentGameState = startGame;
-
         startScreenBG.src = "startScreenBG.png";
         startScreenLogo.src = "startScreenLogo.png";
         playButton.src = "spelaButton.png";
@@ -123,15 +132,16 @@
         monsterChar1.src = 'Monster1TileSheet.png';
         monsterChar3.src = "Monster3TileSheet.png";
         level1.src = "Level 1.png";
-
+        // Viktigt att bilderna laddas innan vi använder dom på canvas, därför använder jag onload på en bild.
         tileSheet.onload = function() {
-            initializeVariables();
-            draw();
-            window.requestAnimationFrame(mainLoop);
-        }
-
-
-
+                // Tilldela alla startvariabler
+                initializeVariables();
+                // Måla kartan
+                draw();
+                // Sätt igång Huvudloopen för spelet.
+                window.requestAnimationFrame(mainLoop);
+            }
+            // Tilldela startvärden
         function initializeVariables() {
             playerHealth = 3;
             playerX = playerStartX;
@@ -154,7 +164,6 @@
             monster3FrameCount = 0;
             monster3CurrentLoopIndex = 0;
             playerCell = 0;
-            lastDirection = true;
             withinPath = true;
             monsterStart = true;
             monsterEnd = false;
@@ -164,20 +173,22 @@
             hitTick = 0;
             alphaCounter = 0;
         }
-
+        // Rita ut kartan
         function draw() {
             var posX = 0;
             var posY = 0;
             for (var i = 0; i < mapArray.length; i++) {
                 for (var j = 0; j < mapArray[i].length; j++) {
                     var value = mapArray[i][j];
-                    var sourceX = (value % 6) * 32;
-                    var sourceY = Math.floor(value / 6) * 32;
+                    var sourceX = (value % 6) * 32; // Räkna ut vilken tile i tilesheet X led.
+                    var sourceY = Math.floor(value / 6) * 32; // Y led
                     ctxBg.drawImage(tileSheet, sourceX, sourceY, 32, 32, posX, posY, 32, 32);
+                    // Lägg till de block som spelaren kan gå i en array
                     if (value == 0) {
                         allowedPath.push([posX, posY])
                     }
-                    if (value != 0 && value > 12) {
+                    // Lägg till alla väggar i en array
+                    if (value != 0) {
                         walls.push([posX, posY]);
                     }
                     posX += 32;
@@ -186,7 +197,7 @@
                 posY += 32;
             }
         }
-
+        // Huvudloopen. Åkallar det "gamestate" vi är i och sedan sig själv.
         function mainLoop() {
             fpsCounter();
             document.getElementById('bool2').innerHTML = Math.floor(fps);
@@ -195,7 +206,7 @@
             currentGameState();
             window.requestAnimationFrame(mainLoop);
         }
-
+        // gamestate när spelet startar, ritar ut alla grafiska element, StartMeny helt enkelt
         function startGame() {
             document.getElementById('menuLoop').play();
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
@@ -206,13 +217,16 @@
             ctxO.drawImage(playButton, 73, 609);
             ctxE.globalAlpha = 0.3;
             ctxE.drawImage(vignette, 0, 0);
+            // Animera röken
             moveSmoke(-0.4);
             if (smokeFrameTrigger == 1500) {
                 smoke2T = true;
             }
+            // Starta nästa rökbild efter 1500 frames
             if (smoke2T) {
                 moveSmoke2(-0.4);
             }
+            // Rita ut område att klicka på (knappen) för att starta spelet
             overlayCanvas.addEventListener('click', function(event) {
                 if (
                     event.x > 73 &&
@@ -220,11 +234,11 @@
                     event.y > 609 &&
                     event.y < 723
                 ) {
-                    afterStart();
+                    afterStart(); // nästa steg
                 }
             });
         }
-
+        // Flytta rök2
         function moveSmoke2(deltaX) {
             smoke2X += deltaX;
             drawSmoke2(smoke2X, 0);
@@ -234,7 +248,7 @@
                 smokeFrame2 = 0;
             }
         }
-
+        // Flytta rök1
         function moveSmoke(deltaX) {
             smoke1X += deltaX;
             drawSmoke(smoke1X, 0);
@@ -245,66 +259,71 @@
                 smokeFrame1 = 0;
             }
         }
-
+        // Rita rök1
         function drawSmoke(canvasX, canvasY) {
             ctxM.drawImage(smoke1, canvasX, canvasY)
         }
-
+        // Rita Rök2
         function drawSmoke2(canvasX, canvasY) {
             ctxM.drawImage(smoke2, canvasX, canvasY)
         }
-
+        // steg 2 av att starta spelet (då man tryckt på knappen) Jag var tvungen att göra ett steg till för
+        // av någon anledning går det inte att ändra en variabel när man använder sig av EventListener "click"
         function afterStart() {
+            // Rensa innehållet på de tre canvas som använts till startmenyn
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
             ctxE.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
+            // Stänger av möjligheten att interagera med de två canvas som ligger överst
             document.getElementById("overlayCanvas").style.pointerEvents = "none";
             document.getElementById("middleCanvas").style.pointerEvents = "none";
+            // Starta SpelLoopen
             currentGameState = gameLoop;
         }
-
+        // Pause-funktionen
         function pause() {
             if (paused) {
                 paused = false;
                 currentGameState = gameLoop;
             }
         }
-
+        // SpelLoopen
         function gameLoop() {
+            // Rensa canvas med spelare, effekter och monster på (annars målas allt på varandra)
             ctxPc.clearRect(0, 0, pcCanvas.width, pcCanvas.height);
             ctxE.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
             ctxShadow.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
+            // variabel för att kolla om spelaren rört sig eller inte, animationsrelaterat
             let hasMoved = false;
+            // Kolla vilken "Cell" spelaren är i (relaterat till kollisionsfunktionen mot väggarna för rörelsen)
             whatPlayerCell();
+            // Input för spelarens rörele, upp, ner, vänster, höger. Kopplat till respektive knappar
             if (playerUp == true) {
                 currentDirection = facingUp;
-                lastDirection = true;
                 hasMoved = true;
                 moveCharacter(0, -moveSpeed, facingUp);
             } else if (playerDown == true) {
                 currentDirection = facingDown;
-                lastDirection = true;
                 hasMoved = true;
                 moveCharacter(0, moveSpeed, facingDown);
             }
             if (playerLeft == true) {
                 currentDirection = facingLeft;
-                lastDirection = true;
                 hasMoved = true;
                 moveCharacter(-moveSpeed, 0, facingLeft);
             } else if (playerRight == true) {
                 currentDirection = facingRight;
-                lastDirection = false;
                 hasMoved = true;
                 moveCharacter(moveSpeed, 0, facingRight);
             }
+            // Här används ovanstående deklarerad variabel för att starta frameräkningen på gåanimationen
             if (hasMoved) {
-                frameCount++
-                if (frameCount >= frameLimit) {
-                    frameCount = 0;
-                    currentLoopIndex++;
-                    if (currentLoopIndex >= animationLoop.length) {
-                        currentLoopIndex = 0;
+                frameCount++ // räkna frames (när man håller in gåknappen)
+                if (frameCount >= frameLimit) { // När vi nått önskad framelimit (12 frames innan vi byter bild)
+                    frameCount = 0; // nollställ
+                    currentLoopIndex++; // öka index för vilken bild att använda
+                    if (currentLoopIndex >= animationLoop.length) { // vi använder 4 bilder för en full animation
+                        currentLoopIndex = 0; // om index är 4 nollställ
                     }
                 }
             }
@@ -351,6 +370,7 @@
                 hitTick++;
             }
             if (paused) {
+                document.getElementById('cog').src = "pause-button.png";
                 paused = false;
                 currentGameState = pause;
             }
@@ -573,9 +593,12 @@
 
         function pauseToggle() {
             if (!paused) {
+                document.getElementById('cog').src = "play-button.png";
                 paused = true;
             } else if (paused) {
+
                 paused = false;
+
             }
         }
 
@@ -590,8 +613,6 @@
                 document.getElementById("overlayCanvas").style.pointerEvents = "initial";
                 currentGameState = gameOverContinue;
             }
-
-
         }
 
         function gameOverContinue() {
