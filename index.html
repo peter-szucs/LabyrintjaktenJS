@@ -31,6 +31,7 @@
         <p id="bool4"></p>
         <p id="bool5"></p>
     </div>
+    <audio id="menuLoop" src="foolboymedia__sky-loop.mp3" preload="auto"></audio>
     <div id="scriptLinkPlaceholder">
         <script src="map1.js" id="scriptLink" type="text/javascript"></script>
     </div>
@@ -196,6 +197,7 @@
         }
 
         function startGame() {
+            document.getElementById('menuLoop').play();
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
             ctxE.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
