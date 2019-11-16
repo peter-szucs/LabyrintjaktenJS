@@ -5,7 +5,7 @@ function moveCharacter(deltaX, deltaY, direction) {
         // Det är långt från bästa lösningen är jag säker på men den funkade från nedskriven ide till implementering
         // vilket gjorde mig otroligt glad! Något buggig så man kan fastna ibland dock. :)
         // vi skickar indexet för X och Y värdet från "cellen" spelaren är i till funktionerna playerPathX & Y och får tillbaka
-        // JA eller NEJ.
+        // SANT eller FALSKT, och sedan flyttar spelaren om SANT
         if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) { // Om vi är innanför - flytta spelaren
             playerX += deltaX
         }
@@ -24,7 +24,7 @@ function moveCharacter(deltaX, deltaY, direction) {
         }
     }
     // playerX += deltaX;  <-- wallhack, x led, för debuggning  :)
-    // playerY += deltaY;  <-- samma som ovan, y led, bara att kommentera ut ovanstående för att funka.
+    // playerY += deltaY;  <-- samma som ovan, y led, bara att kommentera ut ovanstående kod för att dessa ska funka.
     currentDirection = direction;
 }
 // rita spelaren/monstren från tilesheet på canvas
@@ -39,9 +39,10 @@ function drawMonster1(frameX, frameY, canvasX, canvasY) {
 function drawMonster3(frameX, frameY, canvasX, canvasY) {
     ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
 }
-// Pathing för hur monstren ska gå. vi tar in startvärde och slutvärde (midvärde om vi har fler svängar)
+// Pathing för hur monstren ska gå, och animationsfunktion. 
+// Vi tar in bool för startvärde och slutvärde (addera även midvärde om vi har fler svängar)
 function monster1Walk(monsterStart, monsterEnd) {
-
+    // OM startvärde är sant sätt riktning, addera framecountern med 1 (animationen för gång är likadan som för spelaren)
     if (monsterStart) {
         monster1CurrentDirection = monsterFaceRight;
         monster1FrameCount++
@@ -52,12 +53,12 @@ function monster1Walk(monsterStart, monsterEnd) {
                 monster1CurrentLoopIndex = 0;
             }
         }
-        monsterPosX += monsterMoveSpeed;
-
+        monsterPosX += monsterMoveSpeed; // flytta monster
+        // OM slutvärde är sant (monstret har nått sitt slut)
     } else if (monsterEnd) {
-        monsterPosX -= monsterMoveSpeed;
-        monster1CurrentDirection = monsterFaceLeft;
-        monster1FrameCount++
+        monsterPosX -= monsterMoveSpeed; // flytta monster
+        monster1CurrentDirection = monsterFaceLeft; // sätt riktning
+        monster1FrameCount++ // börja animations-frameräknaren
         if (monster1FrameCount >= frameLimit) {
             monster1FrameCount = 0;
             monster1CurrentLoopIndex++;
@@ -67,7 +68,7 @@ function monster1Walk(monsterStart, monsterEnd) {
         }
     }
 }
-
+// Samma som ovan fast för monster 3
 function monster3Walk(monsterStart, monsterEnd) {
 
     if (monsterStart) {

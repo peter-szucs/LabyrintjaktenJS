@@ -1,3 +1,4 @@
+// vår karta
 const mapArray = [
     [5, 1, 9, 1, 1, 1, 1, 1, 1, 1, 6],
     [3, 0, 14, 0, 0, 0, 0, 0, 0, 0, 4],
@@ -18,6 +19,8 @@ const mapArray = [
     [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4],
     [8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7]
 ];
+// fasta variabler som följer med den här kartan, spelarposition, monsterposition, monsterpathing, exitposition
+// monstergånghastighet
 const gameTiles = 32;
 const playerStartX = 32;
 const playerStartY = 23;

@@ -135,15 +135,16 @@
         level1.src = "img/Level 1.png";
         // Viktigt att bilderna laddas innan vi använder dom på canvas, därför använder jag onload på en bild.
         tileSheet.onload = function() {
-            // Tilldela alla startvariabler
-            initializeVariables();
-            // Måla kartan
-            draw();
-            // Sätt igång Huvudloopen för spelet.
-            window.requestAnimationFrame(mainLoop);
-        }
-
-
+                // Tilldela alla startvariabler
+                initializeVariables();
+                // Måla kartan
+                draw();
+                // Sätt igång Huvudloopen för spelet.
+                window.requestAnimationFrame(mainLoop);
+            }
+            // jag la nedan till möjligheten att använda w,a,s,d för att styra spelaren (enklare att använda såhär i ickemobil-miljö)
+            // detta tas med sannolikhet bort när vi ska porta till mobil, eller har vi kvar det så man även kan använda i browsermiljö.
+            // lyssna efter tangentbordsknappar-input (knapp trycks ned, knapp släpps upp)
         window.addEventListener('keydown', keyDownListener, false);
 
         function keyDownListener(event) {
@@ -196,6 +197,7 @@
                     var value = mapArray[i][j];
                     var sourceX = (value % 6) * 32; // Räkna ut vilken tile i tilesheet X led.
                     var sourceY = Math.floor(value / 6) * 32; // Y led
+                    // rita ut den tile som ska vara enligt mapArray
                     ctxBg.drawImage(tileSheet, sourceX, sourceY, 32, 32, posX, posY, 32, 32);
                     // Lägg till de block som spelaren kan gå i till en array
                     if (value == 0) {
@@ -599,36 +601,41 @@
                 currentGameState = gameLoop;
             }
         }
-        // funktion för att addera healthbars till full
+        // funktion för att addera healthbars till fullt
         function addHealthBars() {
             for (let i = 0; i < 3; i++) {
                 document.getElementById('healthbar' + i).src = "img/Healthbar.png";
             }
         }
-
+        // Funktion för när spelaren hittar till Exit, vinnar-gameState
         function winLevel() {
+            // Fade to black
             if (alphaCounter < 1.0) {
                 ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
                 ctxO.globalAlpha = alphaCounter;
                 ctxO.fillStyle = "#000000";
                 ctxO.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
                 alphaCounter += 0.02;
+                // När fade är klar.. aktivera interaktion med översta canvaslager & gå till nästa gameState
             } else if (alphaCounter >= 1.0) {
                 document.getElementById("overlayCanvas").style.pointerEvents = "initial";
                 currentGameState = winLevelChoice;
             }
         }
-
+        // Aktivera "efter vinst" - menyn
         function winLevelChoice() {
+            // rensa innehållet på de canvas som ska visa alla menyelement
             ctxO.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
             ctxM.clearRect(0, 0, middleCanvas.width, middleCanvas.height);
             ctxE.clearRect(0, 0, effectCanvas.width, effectCanvas.height);
             ctxM.globalAlpha = 1.0;
+            // rita ut menyelement
             ctxM.drawImage(startScreenBG, 0, 0);
             ctxO.drawImage(startScreenLogo, 16, 87);
             ctxO.drawImage(playButton, 73, 609);
             ctxE.globalAlpha = 0.5;
             ctxE.drawImage(vignette, 0, 0);
+            // göra knappen klickbar
             overlayCanvas.addEventListener('click', function(event) {
                 if (
                     event.x > 73 &&
@@ -640,7 +647,7 @@
                 }
             });
         }
-
+        // fps-räknare
         function fpsCounter() {
 
             if (!lastCalledTime) {
