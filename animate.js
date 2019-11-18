@@ -23,8 +23,8 @@ function moveCharacter(deltaX, deltaY, direction) {
             playerY += deltaY
         }
     }
-    // playerX += deltaX;  <-- wallhack, x led, för debuggning  :)
-    // playerY += deltaY;  <-- samma som ovan, y led, bara att kommentera ut ovanstående kod för att dessa ska funka.
+    // playerX += deltaX;   // <-- wallhack, x led, för debuggning  :)
+    // playerY += deltaY;  // <-- samma som ovan, y led
     currentDirection = direction;
 }
 // rita spelaren/monstren från tilesheet på canvas
@@ -68,7 +68,67 @@ function monster1Walk(monsterStart, monsterEnd) {
         }
     }
 }
-// Samma som ovan fast för monster 3
+
+function monster2Walk(monsterStart, monsterMid, monsterEnd) {
+
+    if (monsterStart) {
+        monster3CurrentDirection = monsterFaceRight;
+        monster3FrameCount++
+        if (monster3FrameCount >= frameLimit) {
+            monster3FrameCount = 0;
+            monster3CurrentLoopIndex++;
+            if (monster3CurrentLoopIndex >= animationLoop.length) {
+                monster3CurrentLoopIndex = 0;
+            }
+        }
+        if (!monster2PathDirection) {
+            monster2PathDirection = true;
+        } else if (monster2PathDirection) {
+            monster2PathDirection = false;
+        }
+        monster3PosX += monster3MoveSpeed;
+
+    }
+    if (monsterMid) {
+        if (!monster2PathDirection) {
+            monster2CurrentDirection = monsterFaceDown;
+            monster2FrameCount++
+        } else if (monster2PathDirection) {
+            monster2CurrentDirection = monsterFaceLeft;
+            monster2FrameCount++
+        }
+        if (monster2FrameCount >= frameLimit) {
+            monster2FrameCount = 0;
+            monster2CurrentLoopIndex++;
+            if (monster2CurrentLoopIndex >= animationLoop.length) {
+                monster2CurrentLoopIndex = 0;
+            }
+        }
+        if (!monster2PathDirection) {
+            monster2PosY += monster2MoveSpeed;
+        } else if (monster2PathDirection) {
+            monster2PosX -= monster2MoveSpeed;
+        }
+    }
+    if (monsterEnd) {
+        monster2PosY -= monster2MoveSpeed;
+        monster2CurrentDirection = monsterFaceUp;
+        monster2FrameCount++
+        if (monster2FrameCount >= frameLimit) {
+            monster2FrameCount = 0;
+            monster2CurrentLoopIndex++;
+            if (monster2CurrentLoopIndex >= animationLoop.length) {
+                monster2CurrentLoopIndex = 0;
+            }
+        }
+        if (!monster2PathDirection) {
+            monster2PathDirection = true;
+        } else if (monster2PathDirection) {
+            monster2PathDirection = false;
+        }
+    }
+}
+// Samma som monster 1 ovan fast för monster 3
 function monster3Walk(monsterStart, monsterEnd) {
 
     if (monsterStart) {
@@ -96,6 +156,7 @@ function monster3Walk(monsterStart, monsterEnd) {
         }
     }
 }
+
 // Rita Rök1
 function drawSmoke(canvasX, canvasY) {
     ctxM.drawImage(smoke1, canvasX, canvasY)

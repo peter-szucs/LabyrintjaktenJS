@@ -82,11 +82,16 @@
         // Deklarera monsterkontrollerande variabler
         let monsterPosX;
         let monsterPosY;
+        let monster2PosX;
+        let monster2PosY;
         let monster3PosX;
         let monster3PosY;
         let monster1CurrentDirection;
         let monster1FrameCount;
         let monster1CurrentLoopIndex;
+        let monster2CurrentDirection;
+        let monster2FrameCount;
+        let monster2CurrentLoopIndex;
         let monster3CurrentDirection;
         let monster3FrameCount;
         let monster3CurrentLoopIndex;
@@ -94,6 +99,7 @@
         let monsterEnd;
         let monster3Start;
         let monster3End;
+        let monster2PathDirection = false;
         // Animationsrelaterade variabler
         let alphaCounter;
         let smoke1X = 0;
@@ -163,6 +169,8 @@
             playerY = playerStartY;
             monsterPosX = monster1StartX;
             monsterPosY = monster1StartY;
+            monster2PosX = monster2StartX;
+            monster2PosY = monster2StartY;
             monster3PosX = monster3StartX;
             monster3PosY = monster3StartY;
             currentLoopIndex = 0;
@@ -175,6 +183,9 @@
             monster1CurrentDirection = monsterFaceRight;
             monster1FrameCount = 0;
             monster1CurrentLoopIndex = 0;
+            monster2CurrentDirection = monsterFaceRight;
+            monster2FrameCount = 0;
+            monster2CurrentLoopIndex = 0;
             monster3CurrentDirection = monsterFaceRight;
             monster3FrameCount = 0;
             monster3CurrentLoopIndex = 0;
@@ -182,6 +193,8 @@
             withinPath = true;
             monsterStart = true;
             monsterEnd = false;
+            monster2Start = true;
+            monster2End = false;
             monster3Start = true;
             monster3End = false;
             recentHit = false;
@@ -217,10 +230,12 @@
         }
         // Huvudloopen. Åkallar det "gamestate" vi är i och sedan sig själv.
         function mainLoop() {
+            // Debugvariabler för att testa olika funktioner
             fpsCounter();
             document.getElementById('bool2').innerHTML = Math.floor(fps);
             document.getElementById('bool3').innerHTML = frameCount;
             document.getElementById('bool4').innerHTML = alphaCounter;
+            // SLUT debug variabler
             currentGameState();
             window.requestAnimationFrame(mainLoop);
         }
