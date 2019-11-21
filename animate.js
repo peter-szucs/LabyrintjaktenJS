@@ -5,22 +5,22 @@ function moveCharacter(deltaX, deltaY, direction) {
         // Det är långt från bästa lösningen är jag säker på men den funkade från nedskriven ide till implementering
         // vilket gjorde mig otroligt glad! Något buggig så man kan fastna ibland dock. :)
         // vi skickar indexet för X och Y värdet från "cellen" spelaren är i till funktionerna playerPathX & Y och får tillbaka
-        // SANT eller FALSKT, och sedan flyttar spelaren om SANT
+        // SANT eller FALSKT, och sedan flyttar spelaren om SANT. 
         if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) { // Om vi är innanför - flytta spelaren
-            playerX += deltaX
+            playerX += deltaX;
         }
     } else if (deltaX == 1) { // höger
         if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
-            playerX += deltaX
+            playerX += deltaX;
         }
     }
     if (deltaY == -1) { // upp
         if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-            playerY += deltaY
+            playerY += deltaY;
         }
     } else if (deltaY == 1) { // ner
         if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
-            playerY += deltaY
+            playerY += deltaY;
         }
     }
     // playerX += deltaX;   // <-- wallhack, x led, för debuggning  :)
@@ -28,17 +28,17 @@ function moveCharacter(deltaX, deltaY, direction) {
     currentDirection = direction;
 }
 // rita spelaren/monstren från tilesheet på canvas
-function drawPlayer(frameX, frameY, canvasX, canvasY) {
-    ctxPc.drawImage(playerChar, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
+function drawCharacters(character, frameX, frameY, canvasX, canvasY) {
+    ctxPc.drawImage(character, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
+}
+// Blinkfunktionen för när spelaren gått in i monster
+function playerHitBlink() {
+    if (recentHitBlink >= 10 && recentHitBlink <= 20 || recentHitBlink >= 30 && recentHitBlink <= 40 || recentHitBlink >= 50 && recentHitBlink <= 60 || recentHitBlink == 70) {
+        drawCharacters(playerChar, animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
+    }
+    recentHitBlink++;
 }
 
-function drawMonster1(frameX, frameY, canvasX, canvasY) {
-    ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
-}
-
-function drawMonster3(frameX, frameY, canvasX, canvasY) {
-    ctxPc.drawImage(monsterChar1, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
-}
 // Pathing för hur monstren ska gå, och animationsfunktion. 
 // Vi tar in bool för startvärde och slutvärde (addera även midvärde om vi har fler svängar)
 function monster1Walk(monsterStart, monsterEnd) {
@@ -68,25 +68,24 @@ function monster1Walk(monsterStart, monsterEnd) {
         }
     }
 }
-
+// pathing för monster 2 (gul tröja)
 function monster2Walk(monsterStart, monsterMid, monsterEnd) {
 
     if (monsterStart) {
-        monster3CurrentDirection = monsterFaceRight;
-        monster3FrameCount++
-        if (monster3FrameCount >= frameLimit) {
-            monster3FrameCount = 0;
-            monster3CurrentLoopIndex++;
-            if (monster3CurrentLoopIndex >= animationLoop.length) {
-                monster3CurrentLoopIndex = 0;
+        monster2CurrentDirection = monsterFaceRight;
+        monster2FrameCount++
+        if (monster2FrameCount >= frameLimit) {
+            monster2FrameCount = 0;
+            monster2CurrentLoopIndex++;
+            if (monster2CurrentLoopIndex >= animationLoop.length) {
+                monster2CurrentLoopIndex = 0;
             }
         }
-        if (!monster2PathDirection) {
-            monster2PathDirection = true;
-        } else if (monster2PathDirection) {
+        if (monster2PathDirection) {
+            // enda skillnaden mot de andra är den här variabeln som vi ställer om för att visa åt vilket håll vi går i pathen (framåt el bakåt)
             monster2PathDirection = false;
         }
-        monster3PosX += monster3MoveSpeed;
+        monster2PosX += monster2MoveSpeed;
 
     }
     if (monsterMid) {
@@ -122,9 +121,8 @@ function monster2Walk(monsterStart, monsterMid, monsterEnd) {
             }
         }
         if (!monster2PathDirection) {
+            // och här byter vi håll
             monster2PathDirection = true;
-        } else if (monster2PathDirection) {
-            monster2PathDirection = false;
         }
     }
 }

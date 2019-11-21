@@ -31,6 +31,7 @@
         <p id="bool5"></p>
     </div>
     <audio id="menuLoop" src="foolboymedia__sky-loop.mp3" preload="auto"></audio>
+    <audio id="effects"></audio>
     <div id="scriptLinkPlaceholder">
         <script src="map1.js" id="mapScripts" type="text/javascript"></script>
         <script src="animate.js" id="animateScripts" type="text/javascript"></script>
@@ -46,6 +47,8 @@
         const frameLimit = 12;
         const monsterFaceRight = 0;
         const monsterFaceLeft = 1;
+        const monsterFaceUp = 2;
+        const monsterFaceDown = 3;
         const moveSpeed = 1;
         // Initiera canvasobjekten       
         let overlayCanvas = document.getElementById('overlayCanvas');
@@ -97,9 +100,15 @@
         let monster3CurrentLoopIndex;
         let monsterStart;
         let monsterEnd;
+        let monster2Start;
+        let monster2Mid;
+        let monster2End;
         let monster3Start;
         let monster3End;
         let monster2PathDirection = false;
+        let monsters = [];
+        let hitBounce = false;
+        let bounceTimer = 0;
         // Animationsrelaterade variabler
         let alphaCounter;
         let smoke1X = 0;
@@ -109,10 +118,12 @@
         let smokeFrame2 = 0;
         let smokeFrameTrigger = 0;
         let smoke2T = false;
+        let recentHitBlink = 0;
         // Världsstyrande variabler
         let paused = false;
         let currentGameState = startGame;
         let keyPresses = {};
+        let canGo = true;
         // fps
         let lastCalledTime;
         let fps;
@@ -126,6 +137,7 @@
         let tileSheet = new Image();
         let playerChar = new Image();
         let monsterChar1 = new Image();
+        let monsterChar2 = new Image();
         let monsterChar3 = new Image();
         let level1 = new Image();
         startScreenBG.src = "img/startScreenBG.png";
@@ -137,6 +149,7 @@
         tileSheet.src = "img/Tilesheet.png";
         playerChar.src = "img/PCTilesheet.png";
         monsterChar1.src = "img/Monster1TileSheet.png";
+        monsterChar2.src = "img/Monster2TileSheet.png";
         monsterChar3.src = "img/Monster3TileSheet.png";
         level1.src = "img/Level 1.png";
         // Viktigt att bilderna laddas innan vi använder dom på canvas, därför använder jag onload på en bild.
@@ -194,6 +207,7 @@
             monsterStart = true;
             monsterEnd = false;
             monster2Start = true;
+            monster2Mid = false;
             monster2End = false;
             monster3Start = true;
             monster3End = false;
@@ -227,15 +241,21 @@
                 posX = 0;
                 posY += 32;
             }
+            console.log("Walls Array: ");
+            console.log(walls);
         }
         // Huvudloopen. Åkallar det "gamestate" vi är i och sedan sig själv.
         function mainLoop() {
             // Debugvariabler för att testa olika funktioner
             fpsCounter();
             document.getElementById('bool2').innerHTML = Math.floor(fps);
-            document.getElementById('bool3').innerHTML = frameCount;
-            document.getElementById('bool4').innerHTML = alphaCounter;
+            document.getElementById('bool3').innerHTML = bounceTimer;
+            document.getElementById('bool4').innerHTML = "canGo = " + canGo;
             // SLUT debug variabler
+            // Den här arrayn lägger till alla monsters position varje frame. Inte implementerad helt än, för framtida kollisionsarbete.
+            monsters = [[monsterPosX, monsterPosY],
+                        [monster2PosX, monster2PosY],
+                        [monster3PosX, monster3PosY]];
             currentGameState();
             window.requestAnimationFrame(mainLoop);
         }
@@ -297,9 +317,7 @@
             if (!paused) {
                 paused = true;
             } else if (paused) {
-
                 paused = false;
-
             }
         }
         // SpelLoopen
@@ -312,25 +330,53 @@
             let hasMoved = false;
             // Kolla vilken "Cell/Block" spelaren är i (relaterat till kollisionsfunktionen mot väggarna för rörelsen)
             whatPlayerCell();
-            // Input för spelarens rörele, upp, ner, vänster, höger. Kopplat till respektive knappar (och w,a,s,d för testnings skull)
-            // Anledningen att jag har en för varje vädersträck är p.g.a. animeringen. jag behöver ha koll på vart han är och ska.
-            if (playerUp == true || keyPresses.w) {
-                currentDirection = facingUp; // sätter spelarens riktning (så han stannar åt det hållet om vi släpper alla knappar)
-                hasMoved = true; // vår rörelse-bool satt till sant
-                moveCharacter(0, -moveSpeed, facingUp); // starta "Flytta spelaren"-funktionen
-            } else if (playerDown == true || keyPresses.s) {
-                currentDirection = facingDown;
-                hasMoved = true;
-                moveCharacter(0, moveSpeed, facingDown);
+            // Jag ger mig inte när det gäller väggkollisionen än. nedan FOR-loop är ännu bara i teststadiet och kommer jobbas mer på framöver.
+            for (let i = 0; i < walls.length; i++) {
+                if (wallCollision(walls[i][0], walls[i][1])) {
+                    canGo = false;
+                }
+                else {
+                    canGo = true;
+                }
             }
-            if (playerLeft == true || keyPresses.a) {
-                currentDirection = facingLeft;
-                hasMoved = true;
-                moveCharacter(-moveSpeed, 0, facingLeft);
-            } else if (playerRight == true || keyPresses.d) {
-                currentDirection = facingRight;
-                hasMoved = true;
-                moveCharacter(moveSpeed, 0, facingRight);
+            // del av "tillbakastudsningen" som sker när spelaren kolliderar med monster. kort sagt, i 50 frames då spelaren inte kan röra sig alls.
+            // denna IF nollställer alla variablar knutna till det.
+            if (bounceTimer >= 50) {
+                hitBounce = false;
+                bounceTimer = 0;
+            }
+            // ANNARS kör vi funktionen som styr "glidet" bakåt. (i 20 frames)
+            else if (bounceTimer <= 20 && bounceTimer > 0) {
+                hitBounceBack();
+            }
+            // räkna upp timern
+            if (hitBounce) {
+                bounceTimer++;
+            }
+            // OM toggle för nyligen tillbakastuds är nollställd(falsk) kan spelaren flyttas igen.
+            if (!hitBounce) {
+                // Input för spelarens rörele, upp, ner, vänster, höger. Kopplat till respektive knappar (och w,a,s,d för testnings skull)
+                // Anledningen att jag har en för varje vädersträck är p.g.a. animeringen. jag behöver ha koll på vart han är och ska.
+                if (playerUp == true || keyPresses.w) {
+                    // sätter spelarens riktning (så han stannar åt det hållet om vi släpper alla knappar och även aktiverar den variabel som behövs för att måla rätt (rad)
+                    // tile från tilesheet.)
+                    currentDirection = facingUp;
+                    hasMoved = true; // vår rörelse-bool satt till sant
+                    moveCharacter(0, -moveSpeed, facingUp); // starta "Flytta spelaren"-funktionen
+                } else if (playerDown == true || keyPresses.s) {
+                    currentDirection = facingDown;
+                    hasMoved = true;
+                    moveCharacter(0, moveSpeed, facingDown);
+                }
+                if (playerLeft == true || keyPresses.a) {
+                    currentDirection = facingLeft;
+                    hasMoved = true;
+                    moveCharacter(-moveSpeed, 0, facingLeft);
+                } else if (playerRight == true || keyPresses.d) {
+                    currentDirection = facingRight;
+                    hasMoved = true;
+                    moveCharacter(moveSpeed, 0, facingRight);
+                }
             }
             // Här används ovanstående deklarerad variabel för att starta frameräkningen på gåanimationen. så om användaren
             // håller inne knappen körs den här IF satsen hela tiden.
@@ -347,15 +393,28 @@
             if (!hasMoved) { // om spelaren ej rört sig
                 currentLoopIndex = 0; // nollställ loopen (för att förhindra att spelaren stannar mitt i ett steg t.ex.)
             }
-            // Kolla monstrens start/slutpunkter mot var de befinner sig. Ändra en bool för att byta riktning.
+            // Kolla monstrens start/slutpunkter mot var de befinner sig. Ändra booleans för att byta riktning.
             if (monsterPosX >= monster1StartX && monsterPosX <= (monster1StartX + 1)) {
                 monsterStart = true;
-
                 monsterEnd = false;
             } else if (monsterPosX == monster1EndX) {
                 monsterStart = false;
-
                 monsterEnd = true;
+            }
+            if (monster2PosX >= monster2StartX && monster2PosX <= (monster2StartX + 1)) {
+                monster2Start = true;
+                monster2Mid = false;
+                monster2End = false;
+            }
+            else if (monster2PosX >= monster2MidX && monster2PosX <= (monster2MidX + 2) && monster2PosY >= monster2MidY && monster2PosY <= (monster2MidY +1)) {
+                monster2Mid = true;
+                monster2Start = false;
+                monster2End = false;                
+            }
+            else if ((monster2PosY)>= monster2EndY && (monster2PosY) <= (monster2EndY + 1)) {
+                monster2End = true;
+                monster2Start = false;
+                monster2Mid = false;
             }
             if (monster3PosX >= monster3StartX && monster3PosX <= (monster3StartX + 1)) {
                 monster3Start = true;
@@ -363,19 +422,29 @@
                 monster3End = false;
             } else if (monster3PosX >= monster3EndX && monster3PosX <= (monster3EndX + 1)) {
                 monster3Start = false;
-
                 monster3End = true;
             }
             // Animera/flytta monstren
             monster1Walk(monsterStart, monsterEnd);
+            monster2Walk(monster2Start, monster2Mid, monster2End);
             monster3Walk(monster3Start, monster3End);
             // måla en vignette
             ctxE.globalAlpha = 0.3;
             ctxE.drawImage(vignette, 0, 0);
-            // Måla denna frames spelare och monster
-            drawPlayer(animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
-            drawMonster1(animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY);
-            drawMonster3(animationLoop[monster3CurrentLoopIndex], monster3CurrentDirection, monster3PosX, monster3PosY);
+            // kolla om spelaren nyligen träffats av monster
+            if (recentHit) {
+                // kör i så fall blinkfunktionen
+                playerHitBlink();
+            }
+            // ANNARS nollställ blinktimern och rita denna frames spelare.
+            else if (!recentHit) {
+                recentHitBlink = 0;
+                drawCharacters(playerChar, animationLoop[currentLoopIndex], currentDirection, playerX, playerY);
+            }
+            // Måla denna frames monster
+            drawCharacters(monsterChar1, animationLoop[monster1CurrentLoopIndex], monster1CurrentDirection, monsterPosX, monsterPosY);
+            drawCharacters(monsterChar2, animationLoop[monster2CurrentLoopIndex], monster2CurrentDirection, monster2PosX, monster2PosY);
+            drawCharacters(monsterChar3, animationLoop[monster3CurrentLoopIndex], monster3CurrentDirection, monster3PosX, monster3PosY);
             // Kolla om spelaren hittar utgången
             if (collision(exitLevelX + 26, exitLevelY)) {
                 currentGameState = winLevel;
@@ -387,7 +456,7 @@
             }
             // kolla om kollision med monster inträffar, om spelaren inte är i "odödligt" tillstånd...
             if (!recentHit) {
-                if (collision(monsterPosX, monsterPosY) || collision(monster3PosX, monster3PosY)) {
+                if (collision(monsterPosX, monsterPosY) || collision(monster2PosX, monster2PosY) || collision(monster3PosX, monster3PosY)) {
                     monsterHit(); // aktivera funktionen för kollision
                 }
                 // ... annars +1 framecount för odödlighet
@@ -401,7 +470,8 @@
                 currentGameState = pause;
             }
         }
-        // kollision med monster, kolla om spelaren inte har något liv kvar och starta då gameOver gameState, annars trigga odödlighetsBool
+        // kollision med monster, kolla om spelaren inte har något liv kvar och starta då gameOver gameState, annars trigga odödlighetsBool och
+        // tillbakastudsning
         function monsterHit() {
             if (playerHealth == 1) {
                 playerHealth -= 1;
@@ -411,6 +481,36 @@
                 playerHealth -= 1;
                 document.getElementById('healthbar' + playerHealth).src = "img/emptyHealthbar.png";
                 recentHit = true;
+                hitBounce = true;
+                hitBounceBack();
+            }
+        }
+        // funktionen för "tillbakastudsning". switch-sats för att bestämma vilket håll spelaren kom ifrån och studsa tillbaka enligt den infon.
+        // vi kollar pathen (precis som vid vanlig gång) så vi inte clippar in i en vägg eller liknande.
+        function hitBounceBack() {
+            switch (currentDirection) {
+                case 0:
+                    if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, -1)) {
+                        playerY -= 1.2;
+                    }                    
+                    break;
+                case 1:
+                    if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], 1, 0)) {
+                        playerX += 1.2;
+                    }
+                    break;
+                case 2:
+                    if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], -1, 0)) {
+                        playerX -= 1.2;
+                    }
+                    break;
+                case 3:
+                    if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, 1)) {
+                        playerY += 1.2;
+                    }
+                    break;
+                default:
+                    break;
             }
         }
         // kollisionsfunktion, vi tar in x och y värde på objektet spelaren ska testa kollision mot (rektangulär kollision)
@@ -419,6 +519,15 @@
                 x + 32 > playerX &&
                 y + 9 < playerY + 9 + 30 &&
                 y + 9 + 32 > playerY + 9) {
+                return true;
+            }
+        }
+        // väggkollision. WIP
+        function wallCollision(x, y) {
+            if (x < playerX + 28 &&
+                x + 32 > playerX + 4 &&
+                y < playerY + 9 + 28 &&
+                y + 32 > playerY + 13) {
                 return true;
             }
         }
@@ -664,7 +773,6 @@
         }
         // fps-räknare
         function fpsCounter() {
-
             if (!lastCalledTime) {
                 lastCalledTime = Date.now();
                 fps = 0;

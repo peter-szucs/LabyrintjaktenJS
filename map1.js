@@ -34,6 +34,7 @@ const monster2StartX = 3 * gameTiles;
 const monster2MidX = 7 * gameTiles;
 const monster2EndX = 7 * gameTiles;
 const monster2StartY = (8 * gameTiles) - 12;
+const monster2MidY = (8 * gameTiles) - 12;
 const monster2EndY = (9 * gameTiles) - 12;
 const monster3StartX = 5 * gameTiles;
 const monster3EndX = 9 * gameTiles;
