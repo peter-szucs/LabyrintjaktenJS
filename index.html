@@ -31,7 +31,7 @@
         <p id="bool5"></p>
     </div>
     <audio id="menuLoop" src="foolboymedia__sky-loop.mp3" preload="auto"></audio>
-    <audio id="effects"></audio>
+    <audio id="effects" src="playerHit.mp3" preload="auto"></audio>
     <div id="scriptLinkPlaceholder">
         <script src="map1.js" id="mapScripts" type="text/javascript"></script>
         <script src="animate.js" id="animateScripts" type="text/javascript"></script>
@@ -473,6 +473,7 @@
         // kollision med monster, kolla om spelaren inte har något liv kvar och starta då gameOver gameState, annars trigga odödlighetsBool och
         // tillbakastudsning
         function monsterHit() {
+            document.getElementById('effects').play();
             if (playerHealth == 1) {
                 playerHealth -= 1;
                 document.getElementById('healthbar' + playerHealth).src = "img/emptyHealthbar.png";
