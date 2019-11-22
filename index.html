@@ -250,7 +250,6 @@
             fpsCounter();
             document.getElementById('bool2').innerHTML = Math.floor(fps);
             document.getElementById('bool3').innerHTML = bounceTimer;
-            document.getElementById('bool4').innerHTML = "canGo = " + canGo;
             // SLUT debug variabler
             // Den här arrayn lägger till alla monsters position varje frame. Inte implementerad helt än, för framtida kollisionsarbete.
             monsters = [[monsterPosX, monsterPosY],
@@ -328,17 +327,6 @@
             ctxShadow.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
             // variabel för att kolla om spelaren rört sig eller inte, animationsrelaterat
             let hasMoved = false;
-            // Kolla vilken "Cell/Block" spelaren är i (relaterat till kollisionsfunktionen mot väggarna för rörelsen)
-            whatPlayerCell();
-            // Jag ger mig inte när det gäller väggkollisionen än. nedan FOR-loop är ännu bara i teststadiet och kommer jobbas mer på framöver.
-            for (let i = 0; i < walls.length; i++) {
-                if (wallCollision(walls[i][0], walls[i][1])) {
-                    canGo = false;
-                }
-                else {
-                    canGo = true;
-                }
-            }
             // del av "tillbakastudsningen" som sker när spelaren kolliderar med monster. kort sagt, i 50 frames då spelaren inte kan röra sig alls.
             // denna IF nollställer alla variablar knutna till det.
             if (bounceTimer >= 50) {
@@ -491,22 +479,22 @@
         function hitBounceBack() {
             switch (currentDirection) {
                 case 0:
-                    if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, -1)) {
+                    if (!wallCollision(0, -1)) {
                         playerY -= 1.2;
                     }                    
                     break;
                 case 1:
-                    if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], 1, 0)) {
+                    if (!wallCollision(1, 0)) {
                         playerX += 1.2;
                     }
                     break;
                 case 2:
-                    if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], -1, 0)) {
+                    if (!wallCollision(-1, 0)) {
                         playerX -= 1.2;
                     }
                     break;
                 case 3:
-                    if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, 1)) {
+                    if (!wallCollision(0, 1)) {
                         playerY += 1.2;
                     }
                     break;
@@ -523,137 +511,16 @@
                 return true;
             }
         }
-        // väggkollision. WIP
-        function wallCollision(x, y) {
-            if (x < playerX + 28 &&
-                x + 32 > playerX + 4 &&
-                y < playerY + 9 + 28 &&
-                y + 32 > playerY + 13) {
-                return true;
-            }
-        }
-        // en del av min pathing/väggkollision för spelaren. en rektangulär omvänd kollision egentligen för att se vilken "cell"
-        // eller vilket "block" spelaren befinner sig i(varje cell/block är 32*32 px)
-        function whatPlayerCell() {
-            // allowedPath är arrayen som skapades då kartan målades för alla "0" i mapArrayn vilket symboliserar marken 
-            // där man kan gå. [X,Y] värden för varje sådant block kollas mot spelarens X,Y och returnerar indexet i allowedPath
-            // arrayn vilket tilldelas playerCell för att tracka vilken cell vi är i.
-            for (let i = 0; i < allowedPath.length; i++) {
-                if (playerX + 10 > allowedPath[i][0] && // +10 för att göra detectionsrektangeln lite mindre än vad spelaren är
-                    playerX + 20 < allowedPath[i][0] + 32 && // +20 samma här
-                    playerY + 19 >= allowedPath[i][1] && // övre Y koordinat, +19 för att spelarens sprites height är 41 istället för 32. (9+10)
-                    playerY + 40 <= allowedPath[i][1] + 32) {
-                    playerCell = i;
+        // väggkollision
+        function wallCollision(deltaX, deltaY) {
+            for (let i = 0; i < walls.length; i++) {
+                if (walls[i][0] < playerX + 28 + deltaX &&
+                walls[i][0] + 32 > playerX + 4 + deltaX &&
+                walls[i][1] < playerY + 9 + 28 + deltaY &&
+                walls[i][1] + 32 > playerY + 13 + deltaY) {
+                    return true;
                 }
             }
-        }
-        // Funktion för min patenterade pathing. :) - vi tar in spelarens nuvarande cells x&y (x,y) och åt vilket håll spelaren
-        // försöker gå (deltaX/deltaY). Denna behandlar endast X ledet eftersom vi försöker göra en ny rektangel.
-        function playerPathX(x, y, deltaX, deltaY) {
-            // skapa de variabler vi behöver för att skapa en ny shape (baserat på var spelaren är)
-            var leftCellX = 0;
-            var leftCellY = 0;
-            var rightCellX = 0;
-            var rightCellY = 0;
-            var newShapeX = 0;
-            var newShapeY = 0;
-            var newShapeW = 32;
-            var go = false; // bool för returnering
-            // gå igenom allowedPath arrayn
-            for (let i = 0; i < allowedPath.length; i++) {
-                // OM det blir en match för en cell till vänster om spelarens cell
-                if (x == allowedPath[i][0] + 32 &&
-                    y == allowedPath[i][1]) {
-                    //skapa X,Y kordinat för vänstra delen av rektangeln (kan ju vara samma cell som spelaren redan är i,
-                    // då stannar värdet på 0)
-                    leftCellX = allowedPath[i][0];
-                    leftCellY = allowedPath[i][1];
-                }
-                // samma fast åt höger från spelaren
-                if (x + 32 == allowedPath[i][0] &&
-                    y == allowedPath[i][1]) {
-                    rightCellX = allowedPath[i][0];
-                    rightCellY = allowedPath[i][1];
-                }
-            }
-            // OM vi fått träff på en cell åt vänster...
-            if (!leftCellX == 0) {
-                //...skapa koordinat för den nya rektangeln och lägg till ett blocks längd
-                newShapeX = leftCellX;
-                newShapeY = leftCellY;
-                newShapeW += 32;
-                // ANNARS nya rektangelns koordinater är samma som spelarens cell
-            } else if (leftCellX == 0) {
-                newShapeX = x;
-                newShapeY = y;
-            }
-            // OM vi fått träff åt höger lägg till ett blocks/cells längd
-            if (!rightCellX == 0) {
-                newShapeW += 32;
-            }
-            // kolla så spelaren är innanför den nya rektangeln
-            go = withinBounds(newShapeX, newShapeY, newShapeW, deltaX, deltaY);
-            withinPath = go; // variabel för felsökning och tester
-            // returnera om JA eller NEJ
-            return go;
-
-        }
-        // samma som ovan fast vi kollar Y led istället och skapar i så fall en vertikal rektangel
-        // nu ser jag att jag antagligen kan använda en av dom här bara för både X och Y led... ^_^
-        function playerPathY(x, y, deltaX, deltaY) {
-            var upCellX = 0;
-            var upCellY = 0;
-            var downCellX = 0;
-            var downCellY = 0;
-            var newShapeX = 0;
-            var newShapeY = 0;
-            var newShapeH = 32;
-            var go = false;
-            for (let i = 0; i < allowedPath.length; i++) {
-                if (x == allowedPath[i][0] &&
-                    y == allowedPath[i][1] + 32) {
-                    upCellX = allowedPath[i][0];
-                    upCellY = allowedPath[i][1];
-                }
-                if (x == allowedPath[i][0] &&
-                    y + 32 == allowedPath[i][1]) {
-                    downCellX = allowedPath[i][0];
-                    downCellY = allowedPath[i][1];
-                }
-            }
-            if (!upCellX == 0) {
-                newShapeX = upCellX;
-                newShapeY = upCellY;
-                newShapeH += 32;
-            }
-            if (upCellX == 0) {
-                newShapeX = x;
-                newShapeY = y;
-            }
-            if (!downCellX == 0) {
-                newShapeH += 32;
-            }
-            go = withinBounds(newShapeX, newShapeY, newShapeH, deltaX, deltaY);
-            withinPath = go;
-            return go;
-
-        }
-        // funktion för att kolla om spelaren är innanför sin path. vi tar in x,y,w/h för rektangeln och vilken riktning
-        function withinBounds(x, y, wh, deltaX, deltaY) {
-            // För att försöka minimera att spelaren måste hålla sig exakt innanför vår path(svårt i T-korsningar t.ex.)
-            // gör vi spelarens hitbox lite mindre än ett blocks storlek.
-            pClipX = playerX + 2;
-            pClipY = playerY + 11;
-            playerW = 24;
-            playerH = 30;
-            // är rektangeln innanför rektangeln...
-            if (pClipX + deltaX > x &&
-                pClipX + playerW + deltaX < x + wh &&
-                pClipY + deltaY > y &&
-                pClipY + playerH + deltaY < y + wh) {
-                return true;
-            } else
-                return false;
         }
         // gameState för när spelarens liv är slut
         function gameOver() {

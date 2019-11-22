@@ -1,25 +1,21 @@
 // Flytta karaktären, vi tar in deltavärdet för förflyttning(x - || y - led) och spelarens riktning
 function moveCharacter(deltaX, deltaY, direction) {
-    if (deltaX == -1) { // -X led är ju åt vänster
-        // Här är min lite meckiga lösning för väggkollisionen som jag kämpade i flera dagar med.
-        // Det är långt från bästa lösningen är jag säker på men den funkade från nedskriven ide till implementering
-        // vilket gjorde mig otroligt glad! Något buggig så man kan fastna ibland dock. :)
-        // vi skickar indexet för X och Y värdet från "cellen" spelaren är i till funktionerna playerPathX & Y och får tillbaka
-        // SANT eller FALSKT, och sedan flyttar spelaren om SANT. 
-        if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) { // Om vi är innanför - flytta spelaren
+    if (deltaX == -1) {  // -X - led = vänster
+        // kolla kollision mot väggarna, OM INTE funktionen returnerar SANT -> flytta spelaren
+        if (!wallCollision(deltaX, 0)) { 
             playerX += deltaX;
         }
     } else if (deltaX == 1) { // höger
-        if (playerPathX(allowedPath[playerCell][0], allowedPath[playerCell][1], deltaX, 0)) {
+        if (!wallCollision(deltaX, 0)) {
             playerX += deltaX;
         }
     }
     if (deltaY == -1) { // upp
-        if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
+        if (!wallCollision(0, deltaY)) {
             playerY += deltaY;
         }
     } else if (deltaY == 1) { // ner
-        if (playerPathY(allowedPath[playerCell][0], allowedPath[playerCell][1], 0, deltaY)) {
+        if (!wallCollision(0, deltaY)) {
             playerY += deltaY;
         }
     }
@@ -27,6 +23,7 @@ function moveCharacter(deltaX, deltaY, direction) {
     // playerY += deltaY;  // <-- samma som ovan, y led
     currentDirection = direction;
 }
+
 // rita spelaren/monstren från tilesheet på canvas
 function drawCharacters(character, frameX, frameY, canvasX, canvasY) {
     ctxPc.drawImage(character, frameX * 32, frameY * 41, 32, 41, canvasX, canvasY, 32, 41)
