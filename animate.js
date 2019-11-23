@@ -181,3 +181,18 @@ function moveSmoke2(deltaX) {
         smokeFrame2 = 0;
     }
 }
+// "Torch" - effekten
+function playerTorch(playerX, playerY, difficulty) {
+    if (difficulty == 0) {
+        img = playerTorchEasy;
+    }
+    else if (difficulty == 1) {
+        img = playerTorchMedium;
+    }
+    else if (difficulty == 2) {
+        img = playerTorchHard;
+    }
+    var paintX = (playerX + 15) - 340;
+    var paintY = (playerY + 21) - 579;
+    ctxShadow.drawImage(img, paintX, paintY);
+}
